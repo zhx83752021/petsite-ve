@@ -6,12 +6,16 @@ import authRoutes from './auth.routes';
 import userRoutes from './user.routes';
 import cartRoutes from './cart.routes';
 import shopRoutes from './shop.routes';
+import initRoutes from './init.routes';
 
 const router = Router();
 
 /**
  * API 路由汇总
  */
+
+// 数据库初始化路由（仅在首次部署时使用）
+router.use('/init', initRoutes);
 
 // 用户认证路由
 router.use('/auth', authRoutes);
