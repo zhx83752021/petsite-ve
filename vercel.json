@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && npm ci && npm run vercel-build && cd ../backend && npm ci",
+  "buildCommand": "cd frontend && npm ci --include=dev && npm run vercel-build && cd ../backend && npm ci --include=dev",
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
