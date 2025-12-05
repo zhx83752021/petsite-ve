@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 宠物爪印图标 -->
+  <g transform="translate(5, 8)">
+    <!-- 主爪垫 -->
+    <ellipse cx="15" cy="18" rx="8" ry="10" fill="url(#gradient)"/>
+
+    <!-- 脚趾 -->
+    <circle cx="8" cy="8" r="4" fill="url(#gradient)"/>
+    <circle cx="15" cy="5" r="4" fill="url(#gradient)"/>
+    <circle cx="22" cy="8" r="4" fill="url(#gradient)"/>
+  </g>
+
+  <!-- 文字 -->
+  <text x="45" y="26" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">宠物网</text>
+</svg>
