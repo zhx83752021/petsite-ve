@@ -21,15 +21,14 @@ console.log('DB_PASSWORD value:', DB_PASSWORD ? '******' : '(empty)');
 console.log('DB_PASSWORD length:', DB_PASSWORD.length);
 
 const sequelize = new Sequelize(
-  DB_NAME as string,
-  DB_USER as string,
-  DB_PASSWORD as string,
+  process.env.DATABASE_URL || `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
   {
-    host: DB_HOST as string,
-    port: parseInt(DB_PORT),
     dialect: 'postgres' as 'postgres',
     dialectOptions: {
-      ssl: false,
+      ssl: process.env.NODE_ENV === 'production' ? {
+        require: true,
+        rejectUnauthorized: false
+      } : false,
       // 设置客户端编码为 UTF8
       client_encoding: 'UTF8',
     },
