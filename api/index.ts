@@ -46,18 +46,18 @@ async function getApp() {
 }
 
 // Vercel Serverless Function Handler
-export default async (req: VercelRequest, res: VercelResponse) => {
+export default async (req: VercelRequest, res: VercelResponse): Promise<void> => {
   try {
     const appInstance = await getApp();
 
     // 将 Vercel request/response 转换为 Express 兼容格式
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       appInstance(req as any, res as any, (err?: any) => {
         if (err) {
           console.error('[Serverless] 请求处理错误:', err);
           reject(err);
         } else {
-          resolve(undefined);
+          resolve();
         }
       });
     });
