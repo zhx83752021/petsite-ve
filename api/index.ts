@@ -20,13 +20,18 @@ let isDbInitialized = false;
 async function initializeDatabase() {
   if (!isDbInitialized) {
     console.log('[Serverless] 初始化数据库连接...');
+    console.log('[Serverless] DATABASE_URL存在:', !!process.env.DATABASE_URL);
+    console.log('[Serverless] NODE_ENV:', process.env.NODE_ENV);
     try {
       await testConnection();
+      console.log('[Serverless] 数据库连接测试成功');
       await initModels();
+      console.log('[Serverless] 模型初始化成功');
       isDbInitialized = true;
-      console.log('[Serverless] 数据库初始化成功');
+      console.log('[Serverless] 数据库初始化完成');
     } catch (error) {
       console.error('[Serverless] 数据库初始化失败:', error);
+      console.error('[Serverless] 错误详情:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
       throw error;
     }
   }

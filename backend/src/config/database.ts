@@ -20,6 +20,9 @@ console.log('DB_PASSWORD type:', typeof DB_PASSWORD);
 console.log('DB_PASSWORD value:', DB_PASSWORD ? '******' : '(empty)');
 console.log('DB_PASSWORD length:', DB_PASSWORD.length);
 
+// Serverless 环境检测
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
 const sequelize = new Sequelize(
   process.env.DATABASE_URL || `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
   {
@@ -34,7 +37,14 @@ const sequelize = new Sequelize(
     },
     // 使用 UTC 时区,避免时区转换问题
     timezone: '+08:00',
-    pool: {
+    // Serverless 环境下的连接池配置
+    pool: isServerless ? {
+      max: 2,
+      min: 0,
+      acquire: 10000,
+      idle: 1000,
+      evict: 1000,
+    } : {
       max: 10,
       min: 0,
       acquire: 30000,
@@ -44,6 +54,9 @@ const sequelize = new Sequelize(
       if (process.env.NODE_ENV === 'development') {
         console.log('[SQL]:', sql);
         logger.debug(sql);
+      } else {
+        // 生产环境也输出到控制台,方便 Vercel 日志查看
+        console.log('[SQL]:', sql);
       }
     },
     // 模型默认配置

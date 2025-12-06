@@ -7,12 +7,16 @@ import userRoutes from './user.routes';
 import cartRoutes from './cart.routes';
 import shopRoutes from './shop.routes';
 import initRoutes from './init.routes';
+import debugRoutes from './debug.routes';
 
 const router = Router();
 
 /**
  * API 路由汇总
  */
+
+// 诊断路由（用于调试）
+router.use('/debug', debugRoutes);
 
 // 数据库初始化路由（仅在首次部署时使用）
 router.use('/init', initRoutes);
