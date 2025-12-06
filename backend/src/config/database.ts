@@ -96,8 +96,8 @@ export const testConnection = async (): Promise<void> => {
  */
 export const initModels = async (): Promise<void> => {
   try {
-    // 动态导入模型文件,确保模型被注册
-    await import('../models/index.js');
+    // 静态导入模型文件,确保模型被注册
+    require('../models');
     logger.info('数据库模型初始化成功');
   } catch (error) {
     logger.error('数据库模型初始化失败:', error);

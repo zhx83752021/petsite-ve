@@ -4,8 +4,8 @@
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import dotenv from 'dotenv';
-import createApp from '../backend/src/app.js';
-import { testConnection, initModels } from '../backend/src/config/database.js';
+import createApp from '../backend/src/app';
+import { testConnection, initModels } from '../backend/src/config/database';
 
 // 加载环境变量
 dotenv.config();
