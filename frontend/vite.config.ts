@@ -26,12 +26,24 @@ export default defineConfig({
     chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          'element-plus': ['element-plus'],
-          'utils': ['axios', 'dayjs', 'lodash-es'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('element-plus')) {
+              return 'element-plus'
+            }
+            if (id.includes('vue') || id.includes('pinia')) {
+              return 'vue-vendor'
+            }
+            if (id.includes('axios') || id.includes('dayjs') || id.includes('lodash')) {
+              return 'utils'
+            }
+            return 'vendor'
+          }
         },
       },
     },
+  },
+  optimizeDeps: {
+    include: ['element-plus', '@element-plus/icons-vue'],
   },
 })
