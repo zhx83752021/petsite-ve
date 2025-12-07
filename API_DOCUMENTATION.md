@@ -726,7 +726,128 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - ✅ 用户地址管理 API（列表、新增、更新、删除）
 - ✅ 用户订单查询 API（列表、详情、取消订单）
 
-**总计**: 35 个 API 端点
+**阶段 3（16:42）**:
+
+- ✅ 数据统计 API（仪表盘、销售统计）
+- ✅ 图片上传 API（Base64 格式）
+- ✅ 数据导出 API（订单、商品导出为 CSV）
+- ✅ 支付集成 API（模拟版，含创建和回调）
+
+**总计**: 42 个 API 端点
+
+---
+
+## 📈 数据统计 API
+
+#### 36. 仪表盘统计数据
+
+**接口**: `GET /api/admin/statistics/dashboard`
+**权限**: 管理员
+
+**返回数据**:
+
+- 今日数据（订单数、销售额、新用户）
+- 总体数据（总订单、总销售、总用户、总商品）
+- 订单状态统计
+- 近 7 天趋势
+- 热销商品 TOP 10
+- 分类销售统计
+- 待处理任务
+
+#### 37. 销售统计
+
+**接口**: `GET /api/admin/statistics/sales`
+**权限**: 管理员
+**查询参数**:
+
+- `type` - 统计类型：`day`, `week`, `month`
+- `startDate`, `endDate` - 日期范围
+
+---
+
+## 📤 数据导出 API
+
+#### 38. 导出订单数据
+
+**接口**: `GET /api/admin/export/orders`
+**权限**: 管理员
+**查询参数**:
+
+- `startDate`, `endDate` - 日期范围
+- `status` - 订单状态
+  **返回**: CSV 文件下载
+
+#### 39. 导出商品数据
+
+**接口**: `GET /api/admin/export/products`
+**权限**: 管理员
+**查询参数**:
+
+- `categoryId` - 分类 ID
+- `status` - 商品状态
+  **返回**: CSV 文件下载
+
+---
+
+## 🖼️ 图片上传 API
+
+#### 40. 上传图片
+
+**接口**: `POST /api/upload/image`
+**权限**: 用户或管理员
+**请求体**:
+
+```json
+{
+  "image": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
+  "filename": "product.jpg"
+}
+```
+
+**限制**:
+
+- 支持格式：jpeg, jpg, png, gif, webp
+- 文件大小：≤ 5MB
+- 当前为 Base64 模拟版，生产环境建议接入 OSS
+
+---
+
+## 💳 支付 API（模拟版）
+
+#### 41. 创建支付订单
+
+**接口**: `POST /api/payment/create`
+**权限**: 用户
+**请求体**:
+
+```json
+{
+  "orderId": 1,
+  "paymentMethod": "alipay"
+}
+```
+
+**响应**:
+
+```json
+{
+  "code": 200,
+  "message": "支付订单创建成功",
+  "data": {
+    "paymentNo": "PAY1733548560001234",
+    "paymentMethod": "alipay",
+    "amount": 256.0,
+    "paymentUrl": "https://mock-payment.com/pay?...",
+    "qrCode": "https://mock-payment.com/qr/...",
+    "expireTime": "2025-12-07T17:00:00.000Z"
+  }
+}
+```
+
+#### 42. 支付回调
+
+**接口**: `POST /api/payment/callback`
+**说明**: 由支付平台回调，更新订单状态为已支付
 
 ---
 
