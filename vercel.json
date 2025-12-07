@@ -2,14 +2,18 @@
   "buildCommand": "cd frontend && npm ci && npm run build",
   "outputDirectory": "frontend/dist",
   "functions": {
-    "api/**/*.ts": {
+    "backend/api/index.ts": {
       "memory": 1024,
       "maxDuration": 10
     }
   },
   "rewrites": [
     {
-      "source": "/((?!api).*)",
+      "source": "/api/(.*)",
+      "destination": "/backend/api"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
