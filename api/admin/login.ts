@@ -104,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: '登录成功',
       data: {
         token,
-        adminInfo,
+        admin: adminInfo, // 字段名改为 admin 以匹配前端
       },
     });
   } catch (error: any) {
