@@ -47,18 +47,14 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         p.category_id,
         c.name as category_name,
         p.images,
-        p.status,
-        p.created_at,
-        p.updated_at,
         MIN(ps.price) as min_price,
         MAX(ps.price) as max_price,
         SUM(ps.stock) as total_stock
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN product_skus ps ON p.id = ps.product_id
-      WHERE p.deleted_at IS NULL
-      GROUP BY p.id, c.name
-      ORDER BY p.created_at DESC
+      GROUP BY p.id, c.name, p.description, p.images
+      ORDER BY p.id DESC
     `);
 
     res.status(200).json({
