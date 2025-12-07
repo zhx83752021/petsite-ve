@@ -1,53 +1,33 @@
 /**
  * Vercel Serverless Function 入口
- * 将Express应用导出为Serverless Function
+ * 临时简化版本 - 用于诊断问题
  */
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-// Vercel Serverless Function Handler
-export default async (req: VercelRequest, res: VercelResponse): Promise<void> => {
+export default async (req: any, res: any) => {
   try {
     console.log('[Serverless] 收到请求:', req.method, req.url);
 
-    // 动态导入以避免顶层错误
-    const dotenv = await import('dotenv');
-    dotenv.config();
-
-    console.log('[Serverless] 环境变量加载完成');
-    console.log('[Serverless] DATABASE_URL存在:', !!process.env.DATABASE_URL);
-    console.log('[Serverless] NODE_ENV:', process.env.NODE_ENV);
-
-    // 动态导入应用
-    const { default: createApp } = await import('../backend/src/app');
-    console.log('[Serverless] 应用模块导入成功');
-
-    // 创建应用实例
-    const app = createApp();
-    console.log('[Serverless] 应用实例创建成功');
-
-    // 将 Vercel request/response 转换为 Express 兼容格式
-    await new Promise<void>((resolve, reject) => {
-      app(req as any, res as any, (err?: any) => {
-        if (err) {
-          console.error('[Serverless] 请求处理错误:', err);
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-  } catch (error: any) {
-    console.error('[Serverless] 函数执行错误:', error);
-    console.error('[Serverless] 错误堆栈:', error.stack);
-
-    // 确保响应还没发送
-    if (!res.headersSent) {
-      res.status(500).json({
-        code: 500,
-        message: '服务器错误',
-        error: error.message || String(error),
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    // 健康检查端点
+    if (req.url === '/api/health' || req.url === '/api') {
+      return res.status(200).json({
+        success: true,
+        message: 'API 正常运行',
+        timestamp: new Date().toISOString(),
       });
     }
+
+    // 返回临时响应
+    res.status(503).json({
+      success: false,
+      message: 'API 正在维护中',
+      info: '后端功能暂时不可用，请稍后再试',
+      url: req.url,
+    });
+  } catch (error: any) {
+    console.error('[Serverless] 错误:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack,
+    });
   }
 };
