@@ -5,21 +5,50 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 let app: any = null;
+let initError: any = null;
 
 async function getApp() {
-  if (!app) {
-    // 动态导入 Express 应用
-    const createAppModule = await import('../backend/src/app');
-    const createApp = createAppModule.default;
-    app = createApp();
+  if (initError) {
+    throw initError;
+  }
 
-    // 初始化数据库连接
+  if (!app) {
     try {
-      const dbModule = await import('../backend/src/config/database');
-      await dbModule.testConnection();
-      console.log('[Serverless] 数据库连接成功');
-    } catch (err) {
-      console.error('[Serverless] 数据库连接失败:', err);
+      console.log('[Serverless] 开始初始化应用...');
+
+      // 检查环境变量
+      const hasDbUrl = !!(process.env.POSTGRES_URL || process.env.DATABASE_URL);
+      console.log('[Serverless] 数据库连接字符串存在:', hasDbUrl);
+
+      if (!hasDbUrl) {
+        throw new Error('缺少数据库连接字符串 (POSTGRES_URL 或 DATABASE_URL)');
+      }
+
+      // 动态导入 Express 应用
+      console.log('[Serverless] 导入 Express 应用...');
+      const createAppModule = await import('../backend/src/app');
+      const createApp = createAppModule.default;
+      app = createApp();
+      console.log('[Serverless] Express 应用创建成功');
+
+      // 测试数据库连接
+      try {
+        console.log('[Serverless] 测试数据库连接...');
+        const dbModule = await import('../backend/src/config/database');
+        await dbModule.testConnection();
+        console.log('[Serverless] 数据库连接成功');
+      } catch (dbErr: any) {
+        console.error('[Serverless] 数据库连接失败:', dbErr.message);
+        console.error('[Serverless] 堆栈:', dbErr.stack);
+        // 数据库连接失败不阻止应用启动，但记录错误
+      }
+
+      console.log('[Serverless] 应用初始化完成');
+    } catch (err: any) {
+      console.error('[Serverless] 应用初始化失败:', err.message);
+      console.error('[Serverless] 堆栈:', err.stack);
+      initError = err;
+      throw err;
     }
   }
   return app;
@@ -27,13 +56,15 @@ async function getApp() {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    console.log(`[Serverless] 收到请求: ${req.method} ${req.url}`);
+
     const appInstance = await getApp();
 
     // 代理请求到 Express
     return new Promise<void>((resolve, reject) => {
       appInstance(req, res, (err: any) => {
         if (err) {
-          console.error('[Serverless] 错误:', err);
+          console.error('[Serverless] Express 错误:', err);
           reject(err);
         } else {
           resolve();
@@ -41,10 +72,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     });
   } catch (error: any) {
-    console.error('[Serverless] 初始化错误:', error);
+    console.error('[Serverless] 处理请求失败:', error.message);
+    console.error('[Serverless] 堆栈:', error.stack);
+
     res.status(500).json({
       success: false,
+      code: 500,
+      message: '服务器内部错误',
       error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 }
