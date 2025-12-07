@@ -10,6 +10,9 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
 // Vercel Serverless 环境检测
 const isVercel = !!process.env.VERCEL;
 
+// 创建 Express 应用实例
+const app = createApp();
+
 let server: Server | null = null;
 
 /**
@@ -84,9 +87,6 @@ const startServer = async (): Promise<void> => {
     if (process.env.NODE_ENV === 'development') {
       await syncDatabase(false);
     }
-
-    // 创建应用
-    const app = createApp();
 
     // 获取配置的端口
     const configPort = Number(process.env.PORT) || 3000;
