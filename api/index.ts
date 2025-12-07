@@ -6,16 +6,21 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  console.log(`[Serverless] 收到请求: ${req.method} ${req.url}`);
+  const url = req.url || '';
+  console.log(`[Serverless] 收到请求: ${req.method} ${url}`);
+
+  // 提取路径（去除查询参数）
+  const path = url.split('?')[0];
 
   // 健康检查端点
-  if (req.url === '/api/health' || req.url === '/health') {
+  if (path.includes('/health')) {
     return res.status(200).json({
       code: 200,
       message: 'API is running',
       data: {
         status: 'ok',
         timestamp: new Date().toISOString(),
+        path: path,
       },
     });
   }
@@ -26,7 +31,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     code: 404,
     message: 'API 端点不存在',
     data: {
-      url: req.url,
+      url: url,
+      path: path,
       method: req.method,
       tip: '请检查 API 路径是否正确，或该端点是否已实现',
     },
