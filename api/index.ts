@@ -58,6 +58,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     console.log(`[Serverless] 收到请求: ${req.method} ${req.url}`);
 
+    // 简单的健康检查，不加载 Express
+    if (req.url === '/api/health' || req.url === '/health') {
+      return res.status(200).json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        message: 'API is running',
+      });
+    }
+
     const appInstance = await getApp();
 
     // 代理请求到 Express
@@ -80,7 +89,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       code: 500,
       message: '服务器内部错误',
       error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      stack: error.stack,
+      url: req.url,
     });
   }
 }
