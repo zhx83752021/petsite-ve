@@ -76,16 +76,17 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     }
 
     // 生成 JWT Token
+    const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-min-32-chars';
     const token = jwt.sign(
       {
         id: admin.id,
         username: admin.username,
         role: admin.role
       },
-      process.env.JWT_SECRET || 'your-super-secret-jwt-key-min-32-chars',
+      jwtSecret,
       {
         expiresIn: process.env.JWT_EXPIRES_IN || '7d'
-      }
+      } as jwt.SignOptions
     );
 
     // 返回成功响应
