@@ -40,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // 查询管理员用户
     const result = await client.query(
-      "SELECT id, username, password, nickname, email, role, status FROM users WHERE username = $1 AND role = 'admin'",
+      "SELECT id, username, password, email, phone, avatar, role, status FROM users WHERE username = $1 AND role = 'admin'",
       [username]
     );
 
