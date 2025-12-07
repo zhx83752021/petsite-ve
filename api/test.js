@@ -1,7 +1,7 @@
 /**
- * 纯 JavaScript 测试端点
+ * 纯 JavaScript 测试端点 - ES 模块版本
  */
-module.exports = function handler(req, res) {
+export default function handler(req, res) {
   res.status(200).json({
     status: 'ok',
     message: 'Pure JavaScript endpoint works!',
@@ -12,4 +12,4 @@ module.exports = function handler(req, res) {
       nodeVersion: process.version,
     },
   });
-};
+}
