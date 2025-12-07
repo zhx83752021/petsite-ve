@@ -132,6 +132,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: sku.id,
         skuCode: sku.sku_code,
         spec: sku.spec_combination,
+        name: sku.spec_combination, // 前端期望的字段
+        value: sku.spec_combination, // 前端期望的字段
         price: parseFloat(sku.price),
         originalPrice: parseFloat(sku.original_price || sku.price),
         stock: sku.stock || 0,
