@@ -1,5 +1,6 @@
 {
-  "buildCommand": "cd frontend && npx vite build",
+  "framework": null,
+  "buildCommand": "chmod +x frontend/node_modules/.bin/* && cd frontend && npx vite build",
   "outputDirectory": "frontend/dist",
   "installCommand": "npm install && cd frontend && npm install",
   "rewrites": [
