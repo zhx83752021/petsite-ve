@@ -91,7 +91,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
     // 返回成功响应
     res.status(200).json({
-      code: 0,
+      code: 200,
       message: '登录成功',
       data: {
         token,

@@ -62,7 +62,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     `);
 
     res.status(200).json({
-      code: 0,
+      code: 200,
       message: 'success',
       data: result.rows
     });
