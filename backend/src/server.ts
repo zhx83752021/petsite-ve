@@ -7,6 +7,9 @@ import { logger } from './utils/logger';
 // 加载环境变量
 dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
 
+// Vercel Serverless 环境检测
+const isVercel = !!process.env.VERCEL;
+
 let server: Server | null = null;
 
 /**
@@ -124,19 +127,31 @@ const startServer = async (): Promise<void> => {
   }
 };
 
-// 启动服务器
-startServer();
+// Vercel Serverless 环境：导出 app
+if (isVercel) {
+  logger.info('Vercel Serverless 环境检测');
+  // 初始化数据库连接（但不同步模型）
+  testConnection()
+    .then(() => logger.info('数据库连接成功'))
+    .catch(err => logger.error('数据库连接失败:', err));
 
-// 处理进程信号
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  // 导出 Express 应用供 Vercel 使用
+  module.exports = app;
+} else {
+  // 本地开发环境：启动服务器
+  startServer();
 
-// 处理未捕获的异常
-process.on('unhandledRejection', (reason: any) => {
-  logger.error('未处理的 Promise 拒绝:', reason);
-});
+  // 处理进程信号
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-process.on('uncaughtException', (error: Error) => {
-  logger.error('未捕获的异常:', error);
-  process.exit(1);
-});
+  // 处理未捕获的异常
+  process.on('unhandledRejection', (reason: any) => {
+    logger.error('未处理的 Promise 拒绝:', reason);
+  });
+
+  process.on('uncaughtException', (error: Error) => {
+    logger.error('未捕获的异常:', error);
+    process.exit(1);
+  });
+}
