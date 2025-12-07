@@ -201,17 +201,18 @@ const handleLogin = async () => {
 .default-account {
   margin-top: 20px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #f5f7fa;
+  border: 1px solid #e4e7ed;
   border-radius: 8px;
-  backdrop-filter: blur(10px);
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #606266;
 }
 
 .default-account .tip {
   margin: 0 0 10px 0;
   font-weight: 600;
-  color: #fff;
+  color: #303133;
+  font-size: 14px;
 }
 
 .default-account p {
@@ -220,10 +221,10 @@ const handleLogin = async () => {
 }
 
 .default-account strong {
-  color: #fff;
+  color: #409eff;
   font-weight: 600;
   padding: 2px 8px;
-  background: rgba(255, 255, 255, 0.15);
+  background: #ecf5ff;
   border-radius: 4px;
   margin-left: 4px;
 }
