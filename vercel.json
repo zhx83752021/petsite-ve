@@ -1,8 +1,9 @@
 {
-  "buildCommand": "cd frontend && npm ci && npm run build",
+  "installCommand": "cd backend && npm ci && cd ../frontend && npm ci",
+  "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/dist",
   "functions": {
-    "backend/api/index.ts": {
+    "api/index.ts": {
       "memory": 1024,
       "maxDuration": 10
     }
@@ -10,7 +11,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/api"
+      "destination": "/api"
     },
     {
       "source": "/(.*)",
