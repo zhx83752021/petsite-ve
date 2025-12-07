@@ -2,7 +2,7 @@
  * Vercel Serverless Function 入口
  * 代理所有 API 请求到 Express 应用
  */
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 let app: any = null;
 let initError: any = null;
@@ -54,7 +54,7 @@ async function getApp() {
   return app;
 }
 
-module.exports = async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     console.log(`[Serverless] 收到请求: ${req.method} ${req.url}`);
 
