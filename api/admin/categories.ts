@@ -27,26 +27,34 @@ export default async (req: VercelRequest, res: VercelResponse) => {
   try {
     const db = getPool();
 
-    // 查询管理员列表
-    const result = await db.query(`
-      SELECT id, username, email, role, created_at, updated_at
-      FROM admins
-      ORDER BY id DESC
-    `);
+    // GET - 获取分类列表
+    if (req.method === 'GET') {
+      const result = await db.query(`
+        SELECT id, name, icon, description, sort, created_at, updated_at
+        FROM categories
+        ORDER BY sort ASC, id DESC
+      `);
 
-    res.status(200).json({
-      code: 200,
-      message: 'success',
-      data: {
-        items: result.rows,
-        total: result.rows.length
-      }
+      return res.status(200).json({
+        code: 200,
+        message: 'success',
+        data: {
+          items: result.rows,
+          total: result.rows.length
+        }
+      });
+    }
+
+    return res.status(405).json({
+      code: 405,
+      message: 'Method not allowed'
     });
+
   } catch (error: any) {
-    console.error('Admins list error:', error);
+    console.error('Categories API error:', error);
     res.status(500).json({
       code: 500,
-      message: '获取管理员列表失败',
+      message: '服务器错误',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
