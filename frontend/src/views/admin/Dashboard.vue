@@ -156,7 +156,23 @@ const loadDashboardData = async () => {
     const res = await statisticsApi.getDashboard()
     dashboardData.value = res.data
   } catch (error: any) {
-    ElMessage.error(error.message || '加载统计数据失败')
+    console.error('加载统计数据失败:', error)
+    // 设置默认数据，避免页面卡住
+    dashboardData.value = {
+      total: { users: 0, products: 0, orders: 0, sales: 0 },
+      today: { newUsers: 0, orderCount: 0, sales: 0 },
+      orderStatus: {
+        pending: { count: 0, amount: 0 },
+        paid: { count: 0, amount: 0 },
+        shipped: { count: 0, amount: 0 },
+        completed: { count: 0, amount: 0 },
+        cancelled: { count: 0, amount: 0 }
+      },
+      trend: [],
+      topProducts: [],
+      categoryStats: [],
+      pendingTasks: { pendingOrders: 0, paidOrders: 0, activeProducts: 0, lowStockProducts: 0 }
+    }
   } finally {
     loading.value = false
   }
