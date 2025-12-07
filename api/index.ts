@@ -1,33 +1,50 @@
 /**
  * Vercel Serverless Function 入口
- * 临时简化版本 - 用于诊断问题
+ * 代理所有 API 请求到 Express 应用
  */
-export default async (req: any, res: any) => {
-  try {
-    console.log('[Serverless] 收到请求:', req.method, req.url);
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-    // 健康检查端点
-    if (req.url === '/api/health' || req.url === '/api') {
-      return res.status(200).json({
-        success: true,
-        message: 'API 正常运行',
-        timestamp: new Date().toISOString(),
-      });
+let app: any = null;
+
+async function getApp() {
+  if (!app) {
+    // 动态导入 Express 应用
+    const createAppModule = await import('../backend/src/app');
+    const createApp = createAppModule.default;
+    app = createApp();
+
+    // 初始化数据库连接
+    try {
+      const dbModule = await import('../backend/src/config/database');
+      await dbModule.testConnection();
+      console.log('[Serverless] 数据库连接成功');
+    } catch (err) {
+      console.error('[Serverless] 数据库连接失败:', err);
     }
+  }
+  return app;
+}
 
-    // 返回临时响应
-    res.status(503).json({
-      success: false,
-      message: 'API 正在维护中',
-      info: '后端功能暂时不可用，请稍后再试',
-      url: req.url,
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    const appInstance = await getApp();
+
+    // 代理请求到 Express
+    return new Promise<void>((resolve, reject) => {
+      appInstance(req, res, (err: any) => {
+        if (err) {
+          console.error('[Serverless] 错误:', err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
     });
   } catch (error: any) {
-    console.error('[Serverless] 错误:', error);
+    console.error('[Serverless] 初始化错误:', error);
     res.status(500).json({
       success: false,
       error: error.message,
-      stack: error.stack,
     });
   }
-};
+}
