@@ -69,27 +69,38 @@ async function initDatabase() {
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
         name VARCHAR(200) NOT NULL,
-        slug VARCHAR(200) UNIQUE NOT NULL,
-        description TEXT,
-        category_id INTEGER REFERENCES categories(id),
-        price DECIMAL(10, 2) NOT NULL,
-        original_price DECIMAL(10, 2),
-        stock INTEGER DEFAULT 0,
+        slug VARCHAR(200),
+        subtitle VARCHAR(500),
+        detail TEXT,
+        main_images TEXT[],
+        category_id INTEGER,
+        brand_id INTEGER,
+        status SMALLINT DEFAULT 1,
         sales INTEGER DEFAULT 0,
-        images TEXT[],
-        main_image VARCHAR(255),
-        status VARCHAR(20) DEFAULT 'active',
-        is_featured BOOLEAN DEFAULT false,
-        is_hot BOOLEAN DEFAULT false,
-        is_new BOOLEAN DEFAULT false,
-        tags TEXT[],
-        specifications JSONB,
+        views INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         deleted_at TIMESTAMP
       );
     `);
     console.log('✓ 商品表创建完成');
+
+    // 商品SKU表
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS product_skus (
+        id SERIAL PRIMARY KEY,
+        product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+        sku_code VARCHAR(100) UNIQUE NOT NULL,
+        spec_combination VARCHAR(200),
+        price DECIMAL(10, 2) NOT NULL,
+        original_price DECIMAL(10, 2),
+        stock INTEGER DEFAULT 0,
+        status SMALLINT DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✓ 商品SKU表创建完成');
 
     // 订单表
     await client.query(`
@@ -204,77 +215,107 @@ async function initDatabase() {
 
     // 插入一些测试商品
     console.log('\n🛍️  添加测试商品...');
+
+    // 先删除旧数据（如果存在）
+    await client.query('DELETE FROM product_skus;');
+    await client.query('DELETE FROM products;');
+
+    // 插入商品1: 优质狗粮
+    const product1 = await client.query(`
+      INSERT INTO products (name, subtitle, detail, main_images, category_id, status, sales)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id;
+    `, [
+      '优质狗粮 10kg',
+      '进口原料，营养均衡，适合成年犬',
+      '<p>精选优质原料，科学配比，全面满足成年犬营养需求。</p>',
+      ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400'],
+      2,
+      1,
+      156
+    ]);
     await client.query(`
-      INSERT INTO products (name, slug, description, category_id, price, original_price, stock, main_image, status, is_featured, is_hot)
-      VALUES
-        (
-          '优质狗粮 10kg',
-          'premium-dog-food-10kg',
-          '进口原料，营养均衡，适合成年犬',
-          2,
-          299.00,
-          399.00,
-          100,
-          'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400',
-          'active',
-          true,
-          true
-        ),
-        (
-          '鸡肉猫粮 5kg',
-          'chicken-cat-food-5kg',
-          '新鲜鸡肉制作，适合成猫，营养丰富',
-          3,
-          189.00,
-          229.00,
-          150,
-          'https://images.unsplash.com/photo-1529257414772-1960b7bea4eb?w=400',
-          'active',
-          true,
-          false
-        ),
-        (
-          '牛肉零食条 500g',
-          'beef-snacks-500g',
-          '纯天然牛肉制作，无添加剂，狗狗最爱',
-          4,
-          89.00,
-          119.00,
-          200,
-          'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400',
-          'active',
-          false,
-          true
-        ),
-        (
-          '鱼味猫粮 3kg',
-          'fish-cat-food-3kg',
-          '深海鱼类制作，Omega-3丰富，毛发亮泽',
-          3,
-          159.00,
-          189.00,
-          120,
-          'https://images.unsplash.com/photo-1425082661705-1834bfd09dca?w=400',
-          'active',
-          false,
-          false
-        ),
-        (
-          '幼犬奶粉 400g',
-          'puppy-milk-powder-400g',
-          '专为幼犬设计，富含DHA，促进大脑发育',
-          2,
-          128.00,
-          158.00,
-          80,
-          'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400',
-          'active',
-          true,
-          false
-        )
-      ON CONFLICT (slug) DO NOTHING;
-    `);
-    console.log('✓ 测试商品添加完成');
+      INSERT INTO product_skus (product_id, sku_code, spec_combination, price, original_price, stock, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7);
+    `, [product1.rows[0].id, 'DOG-FOOD-10KG', '10kg装', 299.00, 399.00, 100, 1]);
+
+    // 插入商品2: 鸡肉猫粮
+    const product2 = await client.query(`
+      INSERT INTO products (name, subtitle, detail, main_images, category_id, status, sales)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id;
+    `, [
+      '鸡肉猫粮 5kg',
+      '新鲜鸡肉制作，适合成猫，营养丰富',
+      '<p>精选新鲜鸡肉，低敏配方，呵护猫咪肠胃健康。</p>',
+      ['https://images.unsplash.com/photo-1529257414772-1960b7bea4eb?w=400'],
+      3,
+      1,
+      89
+    ]);
+    await client.query(`
+      INSERT INTO product_skus (product_id, sku_code, spec_combination, price, original_price, stock, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7);
+    `, [product2.rows[0].id, 'CAT-FOOD-5KG', '5kg装', 189.00, 229.00, 150, 1]);
+
+    // 插入商品3: 牛肉零食条
+    const product3 = await client.query(`
+      INSERT INTO products (name, subtitle, detail, main_images, category_id, status, sales)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id;
+    `, [
+      '牛肉零食条 500g',
+      '纯天然牛肉制作，无添加剂，狗狗最爱',
+      '<p>100%纯牛肉，自然风干，保留营养，是训练和奖励的最佳选择。</p>',
+      ['https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400'],
+      4,
+      1,
+      234
+    ]);
+    await client.query(`
+      INSERT INTO product_skus (product_id, sku_code, spec_combination, price, original_price, stock, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7);
+    `, [product3.rows[0].id, 'BEEF-SNACK-500G', '500g装', 89.00, 119.00, 200, 1]);
+
+    // 插入商品4: 鱼味猫粮
+    const product4 = await client.query(`
+      INSERT INTO products (name, subtitle, detail, main_images, category_id, status, sales)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id;
+    `, [
+      '鱼味猫粮 3kg',
+      '深海鱼类制作，Omega-3丰富，毛发亮泽',
+      '<p>深海鱼类精华，富含Omega-3，让毛发更加亮泽柔顺。</p>',
+      ['https://images.unsplash.com/photo-1425082661705-1834bfd09dca?w=400'],
+      3,
+      1,
+      67
+    ]);
+    await client.query(`
+      INSERT INTO product_skus (product_id, sku_code, spec_combination, price, original_price, stock, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7);
+    `, [product4.rows[0].id, 'FISH-CAT-3KG', '3kg装', 159.00, 189.00, 120, 1]);
+
+    // 插入商品5: 幼犬奶粉
+    const product5 = await client.query(`
+      INSERT INTO products (name, subtitle, detail, main_images, category_id, status, sales)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id;
+    `, [
+      '幼犬奶粉 400g',
+      '专为幼犬设计，富含DHA，促进大脑发育',
+      '<p>接近母乳配方，易吸收，为幼犬提供全面营养支持。</p>',
+      ['https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400'],
+      2,
+      1,
+      123
+    ]);
+    await client.query(`
+      INSERT INTO product_skus (product_id, sku_code, spec_combination, price, original_price, stock, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7);
+    `, [product5.rows[0].id, 'PUPPY-MILK-400G', '400g装', 128.00, 158.00, 80, 1]);
+
+    console.log('✓ 测试商品和SKU数据添加完成');
 
     console.log('\n✅ 数据库初始化完成！');
     console.log('\n📊 数据统计:');
