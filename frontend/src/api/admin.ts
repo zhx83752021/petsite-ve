@@ -128,4 +128,136 @@ export const adminApi = {
   delete(id: number) {
     return request.delete(`/admin/${id}`)
   },
+
+  // ==================== 商品管理 ====================
+  /**
+   * 获取商品列表（管理后台）
+   */
+  getProducts(params: {
+    page?: number
+    pageSize?: number
+    keyword?: string
+    categoryId?: number
+    status?: number
+  }) {
+    return request.get('/admin/products', { params })
+  },
+
+  /**
+   * 获取商品详情（管理后台）
+   */
+  getProduct(id: number) {
+    return request.get(`/admin/products/${id}`)
+  },
+
+  /**
+   * 创建商品
+   */
+  createProduct(data: any) {
+    return request.post('/admin/products', data)
+  },
+
+  /**
+   * 更新商品
+   */
+  updateProduct(id: number, data: any) {
+    return request.put(`/admin/products/${id}`, data)
+  },
+
+  /**
+   * 删除商品
+   */
+  deleteProduct(id: number) {
+    return request.delete(`/admin/products/${id}`)
+  },
+
+  // ==================== 分类管理 ====================
+  /**
+   * 获取分类列表（管理后台）
+   */
+  getCategories(params?: { includeDisabled?: boolean }) {
+    return request.get('/admin/categories', { params })
+  },
+
+  /**
+   * 获取分类详情
+   */
+  getCategory(id: number) {
+    return request.get(`/admin/categories/${id}`)
+  },
+
+  /**
+   * 创建分类
+   */
+  createCategory(data: {
+    name: string
+    parentId?: number
+    icon?: string
+    sort?: number
+    status?: number
+  }) {
+    return request.post('/admin/categories', data)
+  },
+
+  /**
+   * 更新分类
+   */
+  updateCategory(id: number, data: any) {
+    return request.put(`/admin/categories/${id}`, data)
+  },
+
+  /**
+   * 删除分类
+   */
+  deleteCategory(id: number) {
+    return request.delete(`/admin/categories/${id}`)
+  },
+
+  // ==================== 订单管理 ====================
+  /**
+   * 获取订单列表（管理后台）
+   */
+  getOrders(params: {
+    page?: number
+    pageSize?: number
+    orderNo?: string
+    status?: string
+    startDate?: string
+    endDate?: string
+  }) {
+    return request.get('/admin/orders', { params })
+  },
+
+  /**
+   * 获取订单详情（管理后台）
+   */
+  getOrder(id: number) {
+    return request.get(`/admin/orders/${id}`)
+  },
+
+  /**
+   * 更新订单状态
+   */
+  updateOrderStatus(id: number, data: { status: string; remark?: string }) {
+    return request.put(`/admin/orders/${id}`, data)
+  },
+
+  // ==================== 数据导出 ====================
+  /**
+   * 导出订单数据
+   */
+  exportOrders(params?: {
+    startDate?: string
+    endDate?: string
+    status?: string
+  }) {
+    return request.get('/admin/export/orders', { params, responseType: 'blob' })
+  },
+
+  /**
+   * 导出商品数据
+   */
+  exportProducts(params?: { categoryId?: number; status?: number }) {
+    return request.get('/admin/export/products', { params, responseType: 'blob' })
+  },
 }
