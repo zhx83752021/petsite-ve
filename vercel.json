@@ -1,9 +1,17 @@
 {
   "framework": null,
-  "buildCommand": "chmod +x frontend/node_modules/.bin/* && cd frontend && npx vite build",
+  "buildCommand": "chmod +x frontend/node_modules/.bin/* && cd frontend && npx vite build && cd .. && cp -r public/* frontend/dist/",
   "outputDirectory": "frontend/dist",
   "installCommand": "npm install && cd frontend && npm install",
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/init-database.html",
+      "destination": "/init-database.html"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
