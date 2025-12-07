@@ -38,32 +38,61 @@ export default async (req: VercelRequest, res: VercelResponse) => {
   try {
     const db = getPool();
 
-    // 查询商品列表
+    // 查询商品列表 - 简化版本避免GROUP BY问题
     const result = await db.query(`
       SELECT
         p.id,
         p.name,
         p.description,
         p.category_id,
-        c.name as category_name,
-        p.images,
-        MIN(ps.price) as price,
-        MAX(ps.price) as original_price,
-        SUM(ps.stock) as stock,
-        0 as sales
+        p.images
       FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN product_skus ps ON p.id = ps.product_id
-      GROUP BY p.id, c.name, p.description, p.images
       ORDER BY p.id DESC
     `);
+
+    // 为每个商品查询价格和库存
+    const items = await Promise.all(result.rows.map(async (product: any) => {
+      try {
+        const skuResult = await db.query(
+          'SELECT MIN(price) as min_price, MAX(price) as max_price, SUM(stock) as total_stock FROM product_skus WHERE product_id = $1',
+          [product.id]
+        );
+
+        const sku = skuResult.rows[0] || {};
+
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          category_id: product.category_id,
+          image: product.images?.[0] || null,
+          images: product.images,
+          price: parseFloat(sku.min_price || 0),
+          originalPrice: parseFloat(sku.max_price || 0),
+          stock: parseInt(sku.total_stock || 0),
+          sales: 0
+        };
+      } catch (err) {
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          image: product.images?.[0] || null,
+          images: product.images,
+          price: 0,
+          originalPrice: 0,
+          stock: 0,
+          sales: 0
+        };
+      }
+    }));
 
     res.status(200).json({
       code: 200,
       message: 'success',
       data: {
-        items: result.rows,
-        total: result.rows.length
+        items,
+        total: items.length
       }
     });
   } catch (error: any) {
