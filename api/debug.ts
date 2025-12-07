@@ -1,9 +1,9 @@
 /**
  * 调试端点 - 用于检查 Vercel 环境
  */
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // 收集环境信息
     const envInfo = {
