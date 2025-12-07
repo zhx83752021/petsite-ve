@@ -25,6 +25,73 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     await client.connect();
 
+    // 获取查询参数
+    const {
+      page = 1,
+      pageSize = 20,
+      keyword = '',
+      categoryId = '',
+      brandId = '',
+      minPrice = '',
+      maxPrice = '',
+      sortBy = 'created_at', // created_at, price, sales
+      sortOrder = 'desc' // asc, desc
+    } = req.query;
+
+    // 构建 WHERE 条件
+    const conditions: string[] = ['p.status = 1'];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    // 关键词搜索
+    if (keyword) {
+      conditions.push(`(p.name ILIKE $${paramIndex} OR p.subtitle ILIKE $${paramIndex})`);
+      params.push(`%${keyword}%`);
+      paramIndex++;
+    }
+
+    // 分类筛选
+    if (categoryId) {
+      conditions.push(`p.category_id = $${paramIndex}`);
+      params.push(categoryId);
+      paramIndex++;
+    }
+
+    // 品牌筛选
+    if (brandId) {
+      conditions.push(`p.brand_id = $${paramIndex}`);
+      params.push(brandId);
+      paramIndex++;
+    }
+
+    // 价格范围筛选
+    if (minPrice) {
+      conditions.push(`ps.price >= $${paramIndex}`);
+      params.push(parseFloat(minPrice as string));
+      paramIndex++;
+    }
+
+    if (maxPrice) {
+      conditions.push(`ps.price <= $${paramIndex}`);
+      params.push(parseFloat(maxPrice as string));
+      paramIndex++;
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    // 排序字段映射
+    const sortFieldMap: any = {
+      'created_at': 'p.created_at',
+      'price': 'min_price',
+      'sales': 'p.sales',
+    };
+    const sortField = sortFieldMap[sortBy as string] || 'p.created_at';
+    const sortDirection = sortOrder === 'asc' ? 'ASC' : 'DESC';
+
+    // 计算偏移量
+    const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string);
+    const limit = parseInt(pageSize as string);
+
     // 查询商品和SKU
     const result = await client.query(`
       SELECT
@@ -39,11 +106,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         SUM(ps.stock) as total_stock
       FROM products p
       LEFT JOIN product_skus ps ON p.id = ps.product_id
-      WHERE p.status = 1
+      WHERE ${whereClause}
       GROUP BY p.id, p.name, p.subtitle, p.main_images, p.category_id, p.sales
-      ORDER BY p.created_at DESC
-      LIMIT 20
-    `);
+      ORDER BY ${sortField} ${sortDirection}
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `, [...params, limit, offset]);
+
+    // 查询总数
+    const countResult = await client.query(`
+      SELECT COUNT(DISTINCT p.id) as total
+      FROM products p
+      LEFT JOIN product_skus ps ON p.id = ps.product_id
+      WHERE ${whereClause}
+    `, params);
 
     await client.end();
 
@@ -61,15 +136,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       categoryId: row.category_id,
     }));
 
+    const total = parseInt(countResult.rows[0]?.total || '0');
+
     res.status(200).json({
       code: 200,
       message: 'success',
       data: {
         items,
         pagination: {
-          total: result.rowCount || 0,
-          page: 1,
-          pageSize: 20,
+          total,
+          page: parseInt(page as string),
+          pageSize: parseInt(pageSize as string),
         },
       },
     });
