@@ -38,14 +38,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     await client.end();
 
+    // 转换数据格式以匹配前端期望
+    const items = result.rows.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      subtitle: row.subtitle,
+      image: row.main_images?.[0] || '',
+      images: row.main_images || [],
+      price: parseFloat(row.min_price) || 0,
+      originalPrice: parseFloat(row.max_price) || 0,
+      sales: row.sales || 0,
+      stock: row.total_stock || 0,
+      categoryId: row.category_id,
+    }));
+
     res.status(200).json({
       code: 200,
       message: 'success',
       data: {
-        list: result.rows,
-        total: result.rowCount || 0,
-        page: 1,
-        pageSize: 20,
+        items,
+        pagination: {
+          total: result.rowCount || 0,
+          page: 1,
+          pageSize: 20,
+        },
       },
     });
   } catch (error: any) {

@@ -38,9 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     await client.connect();
 
-    // 查询管理员
+    // 查询管理员用户
     const result = await client.query(
-      'SELECT id, username, password, nickname, email, role, status FROM admins WHERE username = $1',
+      "SELECT id, username, password, nickname, email, role, status FROM users WHERE username = $1 AND role = 'admin'",
       [username]
     );
 
@@ -57,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const admin = result.rows[0];
 
     // 检查账号状态
-    if (admin.status !== 1) {
+    if (admin.status !== 'active' && admin.status !== 1) {
       return res.status(200).json({
         code: 403,
         message: '账号已被禁用',
