@@ -6,7 +6,8 @@
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
-    "build": "cd frontend && npm run build"
+    "build": "npm install --prefix frontend && npm run build --prefix frontend",
+    "install": "npm install --prefix frontend"
   },
   "dependencies": {
     "pg": "^8.11.3",
