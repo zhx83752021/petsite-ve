@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>数据库初始化工具</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+      }
+
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      .warning {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #856404;
+      }
+
+      .warning strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .info {
+        background: #d1ecf1;
+        border: 1px solid #17a2b8;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #0c5460;
+      }
+
+      .info ul {
+        margin: 10px 0 0 20px;
+      }
+
+      .info li {
+        margin: 5px 0;
+      }
+
+      button {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 20px;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      #result {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+        display: none;
+      }
+
+      #result.show {
+        display: block;
+      }
+
+      .result-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 14px;
+      }
+
+      .result-item:last-child {
+        border-bottom: none;
+      }
+
+      .result-item.success {
+        color: #28a745;
+      }
+
+      .result-item.warning {
+        color: #ffc107;
+      }
+
+      .result-item.error {
+        color: #dc3545;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🗄️ 数据库初始化工具</h1>
+      <p class="subtitle">一键初始化宠物网站数据库</p>
+
+      <div class="warning">
+        <strong>⚠️ 注意事项：</strong>
+        这个工具会自动创建缺失的表并插入示例数据。已存在的数据不会被覆盖。
+      </div>
+
+      <div class="info">
+        <strong>✨ 将会执行以下操作：</strong>
+        <ul>
+          <li>创建 brands 表并插入5个品牌</li>
+          <li>创建 posts 表并插入5条动态</li>
+          <li>为 categories 和 products 表添加缺失字段</li>
+          <li>更新现有数据的默认值</li>
+        </ul>
+      </div>
+
+      <button id="initBtn" onclick="initDatabase()">🚀 开始初始化</button>
+
+      <div id="result"></div>
+    </div>
+
+    <script>
+      async function initDatabase() {
+        const btn = document.getElementById("initBtn");
+        const resultDiv = document.getElementById("result");
+
+        // 禁用按钮
+        btn.disabled = true;
+        btn.textContent = "初始化中...";
+
+        // 显示加载动画
+        resultDiv.className = "show";
+        resultDiv.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <div>正在初始化数据库...</div>
+        </div>
+      `;
+
+        try {
+          const response = await fetch("https://ski-row.cn/api/init-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const data = await response.json();
+
+          if (data.code === 200) {
+            // 显示结果
+            let html =
+              '<h3 style="color: #28a745; margin-bottom: 15px;">✅ 初始化完成！</h3>';
+
+            data.data.results.forEach((result) => {
+              let className = "result-item ";
+              if (result.includes("✅")) className += "success";
+              else if (result.includes("⚠️")) className += "warning";
+              else className += "error";
+
+              html += `<div class="${className}">${result}</div>`;
+            });
+
+            resultDiv.innerHTML = html;
+            btn.textContent = "✅ 初始化完成";
+            btn.style.background = "#28a745";
+
+            // 3秒后提示刷新页面
+            setTimeout(() => {
+              resultDiv.innerHTML += `
+              <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 8px; color: #155724; text-align: center;">
+                <strong>🎉 数据库已准备就绪！</strong><br>
+                现在可以访问网站查看效果了
+              </div>
+            `;
+            }, 1000);
+          } else {
+            throw new Error(data.message || "初始化失败");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          resultDiv.innerHTML = `
+          <div class="result-item error">
+            <strong>❌ 初始化失败</strong><br>
+            ${error.message}
+          </div>
+        `;
+          btn.textContent = "重试";
+          btn.disabled = false;
+        }
+      }
+    </script>
+  </body>
+</html>
