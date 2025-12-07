@@ -9,6 +9,16 @@ import jwt from 'jsonwebtoken';
 const { Client } = pkg;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // 设置 CORS 头
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // 处理 OPTIONS 预检请求
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // 只允许 POST 请求
   if (req.method !== 'POST') {
     return res.status(200).json({

@@ -6,6 +6,15 @@ import pkg from 'pg';
 const { Client } = pkg;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // 设置 CORS 头
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const { id } = req.query;
 
   if (!id) {
@@ -76,8 +85,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     await client.end();
 
+    // 调试日志
+    console.log(`[API] 商品 ${id} 的 SKU 数量:`, skuResult.rows.length);
+    console.log(`[API] SKU 数据:`, JSON.stringify(skuResult.rows, null, 2));
+
     // 计算价格范围
     const skus = skuResult.rows;
+
+    // 如果没有 SKU，返回空数据
+    if (skus.length === 0) {
+      console.log(`[API] 警告: 商品 ${id} 没有 SKU 数据`);
+      return res.status(200).json({
+        code: 200,
+        message: 'success',
+        data: {
+          ...product,
+          price: 0,
+          originalPrice: 0,
+          stock: 0,
+          skus: [],
+        },
+      });
+    }
+
     const prices = skus.map((sku: any) => parseFloat(sku.price));
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
