@@ -17,12 +17,7 @@
             v-model="form.username"
             placeholder="请输入管理员账号"
             size="large"
-            prefix-icon="User"
-          >
-            <template #prefix>
-              <el-icon><User /></el-icon>
-            </template>
-          </el-input>
+          />
         </el-form-item>
 
         <el-form-item prop="password">
@@ -33,11 +28,7 @@
             size="large"
             show-password
             @keyup.enter="handleLogin"
-          >
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
+          />
         </el-form-item>
 
         <el-form-item>
@@ -57,6 +48,11 @@
         <router-link to="/">
           返回前台首页
         </router-link>
+        <div class="default-account">
+          <p class="tip">测试账号</p>
+          <p>用户名: <strong>admin</strong></p>
+          <p>密码: <strong>admin123</strong></p>
+        </div>
       </div>
     </div>
   </div>
@@ -67,7 +63,6 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
 import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const adminStore = useAdminStore()
@@ -201,6 +196,36 @@ const handleLogin = async () => {
 
 .login-footer a:hover {
   color: #764ba2;
+}
+
+.default-account {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.default-account .tip {
+  margin: 0 0 10px 0;
+  font-weight: 600;
+  color: #fff;
+}
+
+.default-account p {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+.default-account strong {
+  color: #fff;
+  font-weight: 600;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  margin-left: 4px;
 }
 
 .login-tips {
