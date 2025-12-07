@@ -38,14 +38,13 @@ export default async (req: VercelRequest, res: VercelResponse) => {
   try {
     const db = getPool();
 
-    // 查询商品列表 - 简化版本避免GROUP BY问题
+    // 查询商品列表 - 简化版本
     const result = await db.query(`
       SELECT
         p.id,
         p.name,
         p.description,
-        p.category_id,
-        p.images
+        p.category_id
       FROM products p
       ORDER BY p.id DESC
     `);
@@ -63,22 +62,23 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         return {
           id: product.id,
           name: product.name,
-          description: product.description,
+          description: product.description || '',
           category_id: product.category_id,
-          image: product.images?.[0] || null,
-          images: product.images,
+          image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400',
+          images: [],
           price: parseFloat(sku.min_price || 0),
           originalPrice: parseFloat(sku.max_price || 0),
           stock: parseInt(sku.total_stock || 0),
           sales: 0
         };
       } catch (err) {
+        console.error('SKU query error:', err);
         return {
           id: product.id,
           name: product.name,
-          description: product.description,
-          image: product.images?.[0] || null,
-          images: product.images,
+          description: product.description || '',
+          image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400',
+          images: [],
           price: 0,
           originalPrice: 0,
           stock: 0,
