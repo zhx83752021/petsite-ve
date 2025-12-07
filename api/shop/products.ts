@@ -39,10 +39,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await client.end();
 
     res.status(200).json({
-      success: true,
+      code: 200,
+      message: 'success',
       data: {
-        products: result.rows,
+        list: result.rows,
         total: result.rowCount || 0,
+        page: 1,
+        pageSize: 20,
       },
     });
   } catch (error: any) {
@@ -56,10 +59,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    res.status(500).json({
-      success: false,
-      message: '查询商品失败',
-      error: error.message,
+    res.status(200).json({
+      code: 500,
+      message: error.message || '查询商品失败',
+      data: null,
     });
   }
 }
