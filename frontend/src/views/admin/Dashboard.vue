@@ -6,8 +6,8 @@
     <el-card class="welcome-card" shadow="never">
       <div class="welcome-content">
         <div class="welcome-text">
-          <h3>欢迎回来,{{ adminStore.adminName }}!</h3>
-          <p>今天是 {{ currentDate }},祝您工作愉快!</p>
+          <h3>欢迎回来, {{ adminStore.adminName }}!</h3>
+          <p>今天是 {{ currentDate }}, 祝您工作愉快!</p>
         </div>
         <div class="welcome-actions">
           <el-button type="primary" @click="$router.push('/admin/products')">
@@ -21,11 +21,14 @@
     <!-- 数据统计卡片 -->
     <el-row :gutter="24" class="stats-row">
       <el-col :xs="12" :sm="12" :md="6">
-        <el-card shadow="hover" class="stat-card">
+        <el-card shadow="hover" class="stat-card" v-loading="loading">
           <div class="stat-content">
             <div class="stat-info">
               <div class="stat-title">用户总数</div>
-              <div class="stat-value">1,234</div>
+              <div class="stat-value">{{ dashboardData?.total.users || 0 }}</div>
+              <div class="stat-trend">
+                今日新增 +{{ dashboardData?.today.newUsers || 0 }}
+              </div>
             </div>
             <div class="stat-icon user">
               <el-icon :size="32"><User /></el-icon>
@@ -35,11 +38,14 @@
       </el-col>
 
       <el-col :xs="12" :sm="12" :md="6">
-        <el-card shadow="hover" class="stat-card">
+        <el-card shadow="hover" class="stat-card" v-loading="loading">
           <div class="stat-content">
             <div class="stat-info">
               <div class="stat-title">商品数量</div>
-              <div class="stat-value">567</div>
+              <div class="stat-value">{{ dashboardData?.total.products || 0 }}</div>
+              <div class="stat-trend">
+                在售商品 {{ dashboardData?.pendingTasks.activeProducts || 0 }}
+              </div>
             </div>
             <div class="stat-icon product">
               <el-icon :size="32"><Goods /></el-icon>
@@ -49,11 +55,14 @@
       </el-col>
 
       <el-col :xs="12" :sm="12" :md="6">
-        <el-card shadow="hover" class="stat-card">
+        <el-card shadow="hover" class="stat-card" v-loading="loading">
           <div class="stat-content">
             <div class="stat-info">
               <div class="stat-title">订单数量</div>
-              <div class="stat-value">890</div>
+              <div class="stat-value">{{ dashboardData?.total.orders || 0 }}</div>
+              <div class="stat-trend">
+                今日新增 +{{ dashboardData?.today.orderCount || 0 }}
+              </div>
             </div>
             <div class="stat-icon order">
               <el-icon :size="32"><Document /></el-icon>
@@ -97,8 +106,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useAdminStore } from '@/stores/admin'
+import { statisticsApi } from '@/api/statistics'
+import type { DashboardStats } from '@/api/statistics'
+import { ElMessage } from 'element-plus'
 import {
   User,
   Goods,
@@ -112,6 +124,8 @@ import {
 } from '@element-plus/icons-vue'
 
 const adminStore = useAdminStore()
+const loading = ref(false)
+const dashboardData = ref<DashboardStats | null>(null)
 
 const currentDate = computed(() => {
   const now = new Date()
@@ -134,6 +148,23 @@ const quickLinks = [
   { title: '动态管理', path: '/admin/posts', icon: ChatDotSquare },
   { title: '商城首页', path: '/', icon: ShoppingBag },
 ]
+
+// 加载仪表盘数据
+const loadDashboardData = async () => {
+  loading.value = true
+  try {
+    const res = await statisticsApi.getDashboard()
+    dashboardData.value = res.data
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载统计数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadDashboardData()
+})
 </script>
 
 <style scoped>
