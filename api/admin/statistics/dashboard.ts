@@ -39,39 +39,46 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     const ordersResult = await db.query('SELECT COUNT(*) as count FROM orders');
     const orderCount = parseInt(ordersResult.rows[0].count);
 
-    // 今日新增用户（如果有created_at字段）
+    // 今日新增用户
     let todayUsers = 0;
     try {
       const todayUsersResult = await db.query(
         "SELECT COUNT(*) as count FROM users WHERE DATE(created_at) = CURRENT_DATE"
       );
       todayUsers = parseInt(todayUsersResult.rows[0].count);
-    } catch (e) {
-      // 如果没有created_at字段，忽略
-    }
+    } catch (e) {}
 
-    // 今日新增订单
+    // 今日订单
     let todayOrders = 0;
     try {
       const todayOrdersResult = await db.query(
         "SELECT COUNT(*) as count FROM orders WHERE DATE(created_at) = CURRENT_DATE"
       );
       todayOrders = parseInt(todayOrdersResult.rows[0].count);
-    } catch (e) {
-      // 如果没有created_at字段，忽略
-    }
+    } catch (e) {}
 
     res.status(200).json({
       code: 200,
       message: 'success',
       data: {
-        userCount,
-        productCount,
-        orderCount,
-        todayUsers,
-        todayOrders,
-        todayProducts: 0, // 今日新增商品
-        salesCount: 345   // 销售数量（示例）
+        total: {
+          users: userCount,
+          products: productCount,
+          orders: orderCount,
+          revenue: 0
+        },
+        today: {
+          newUsers: todayUsers,
+          orderCount: todayOrders,
+          revenue: 0,
+          visitors: 0
+        },
+        pendingTasks: {
+          pendingOrders: 0,
+          activeProducts: productCount,
+          lowStockProducts: 0,
+          pendingRefunds: 0
+        }
       }
     });
   } catch (error: any) {

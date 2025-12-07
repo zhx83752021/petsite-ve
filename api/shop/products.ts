@@ -47,9 +47,10 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         p.category_id,
         c.name as category_name,
         p.images,
-        MIN(ps.price) as min_price,
-        MAX(ps.price) as max_price,
-        SUM(ps.stock) as total_stock
+        MIN(ps.price) as price,
+        MAX(ps.price) as original_price,
+        SUM(ps.stock) as stock,
+        0 as sales
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN product_skus ps ON p.id = ps.product_id
@@ -60,7 +61,10 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     res.status(200).json({
       code: 200,
       message: 'success',
-      data: result.rows
+      data: {
+        items: result.rows,
+        total: result.rows.length
+      }
     });
   } catch (error: any) {
     console.error('Database error:', error);
