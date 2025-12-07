@@ -9,6 +9,10 @@
       "destination": "/api/:path*"
     },
     {
+      "source": "/shop/:path*",
+      "destination": "/api/shop/:path*"
+    },
+    {
       "source": "/init-database.html",
       "destination": "/init-database.html"
     },
