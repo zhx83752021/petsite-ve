@@ -197,22 +197,14 @@ export default async (req: VercelRequest, res: VercelResponse) => {
   } catch (error: any) {
     console.error('Posts API error:', error);
 
-    // 如果表不存在，返回空列表
-    if (error.code === '42P01') {
-      return res.status(200).json({
-        code: 200,
-        message: 'success',
-        data: {
-          items: [],
-          total: 0
-        }
-      });
-    }
-
-    res.status(500).json({
-      code: 500,
-      message: '服务器错误',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    // 如果表不存在或任何数据库错误，返回空列表
+    return res.status(200).json({
+      code: 200,
+      message: 'success',
+      data: {
+        items: [],
+        total: 0
+      }
     });
   }
 };

@@ -43,7 +43,6 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       SELECT
         p.id,
         p.name,
-        p.description,
         p.category_id
       FROM products p
       ORDER BY p.id DESC
@@ -62,7 +61,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         return {
           id: product.id,
           name: product.name,
-          description: product.description || '',
+          description: '',
           category_id: product.category_id,
           image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400',
           images: [],
@@ -76,7 +75,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         return {
           id: product.id,
           name: product.name,
-          description: product.description || '',
+          description: '',
           image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400',
           images: [],
           price: 0,

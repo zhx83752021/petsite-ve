@@ -30,9 +30,9 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     // GET - 获取分类列表
     if (req.method === 'GET') {
       const result = await db.query(`
-        SELECT id, name, icon, description, sort, created_at, updated_at
+        SELECT id, name, icon, created_at, updated_at
         FROM categories
-        ORDER BY sort ASC, id DESC
+        ORDER BY id DESC
       `);
 
       return res.status(200).json({
