@@ -1,30 +1,28 @@
-import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
 import { logger } from '../utils/logger';
 
-// 确保环境变量已加载
-dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
-
 /**
  * 数据库配置和连接
+ * 在 Vercel 环境中，环境变量会自动注入，不需要 dotenv
  */
-const DB_HOST: string = String(process.env.DB_HOST || 'localhost');
-const DB_PORT: string = String(process.env.DB_PORT || '5432');
-const DB_NAME: string = String(process.env.DB_NAME || 'pet_web');
-const DB_USER: string = String(process.env.DB_USER || 'postgres');
-const DB_PASSWORD: string = String(process.env.DB_PASSWORD || '');
 
-// 调试日志
-console.log('[Database Config]');
-console.log('DB_PASSWORD type:', typeof DB_PASSWORD);
-console.log('DB_PASSWORD value:', DB_PASSWORD ? '******' : '(empty)');
-console.log('DB_PASSWORD length:', DB_PASSWORD.length);
+// 获取数据库连接字符串（兼容多种环境变量名）
+const DATABASE_URL =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_DATABASE_URL;
 
 // Serverless 环境检测
 const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
+// 调试日志
+console.log('[Database Config]');
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Is Serverless:', !!isServerless);
+console.log('Has DATABASE_URL:', !!DATABASE_URL);
+
 const sequelize = new Sequelize(
-  process.env.DATABASE_URL || `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
+  DATABASE_URL || 'postgres://localhost:5432/pet_web',
   {
     dialect: 'postgres' as 'postgres',
     dialectOptions: {
