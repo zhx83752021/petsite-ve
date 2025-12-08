@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API测试工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+
+    .test-section h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .result pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .success {
+      color: #28a745;
+    }
+
+    .error {
+      color: #dc3545;
+    }
+
+    .loading {
+      color: #ffc107;
+    }
+
+    input {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      width: 200px;
+      margin-right: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 API 测试工具</h1>
+
+    <div class="test-section">
+      <h2>1. 测试商品详情API</h2>
+      <input type="number" id="productId" value="5" placeholder="商品ID">
+      <button onclick="testProductDetail()">测试商品详情</button>
+      <div id="productResult" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>2. 测试订单列表API</h2>
+      <button onclick="testOrders()">测试订单列表</button>
+      <div id="orderResult" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>3. 测试品牌列表API</h2>
+      <button onclick="testBrands()">测试品牌列表</button>
+      <div id="brandResult" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>4. 测试管理员列表API</h2>
+      <button onclick="testAdmins()">测试管理员列表</button>
+      <div id="adminResult" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>5. 数据库初始化</h2>
+      <button onclick="testInit()">执行初始化</button>
+      <div id="initResult" class="result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    async function testProductDetail() {
+      const productId = document.getElementById('productId').value;
+      const resultDiv = document.getElementById('productResult');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<p class="loading">⏳ 请求中...</p>';
+
+      try {
+        const response = await fetch(`/api/shop/products/${productId}`);
+        const data = await response.json();
+
+        resultDiv.innerHTML = `
+          <p class="${data.code === 200 ? 'success' : 'error'}">
+            <strong>状态:</strong> ${response.status} ${response.statusText}<br>
+            <strong>响应码:</strong> ${data.code}<br>
+            <strong>消息:</strong> ${data.message}
+          </p>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">
+            <strong>❌ 错误:</strong> ${error.message}
+          </p>
+        `;
+      }
+    }
+
+    async function testOrders() {
+      const resultDiv = document.getElementById('orderResult');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<p class="loading">⏳ 请求中...</p>';
+
+      try {
+        const response = await fetch('/api/admin/orders');
+        const data = await response.json();
+
+        resultDiv.innerHTML = `
+          <p class="${data.code === 200 ? 'success' : 'error'}">
+            <strong>状态:</strong> ${response.status}<br>
+            <strong>响应码:</strong> ${data.code}<br>
+            <strong>数据条数:</strong> ${data.data?.items?.length || 0}
+          </p>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `<p class="error">❌ 错误: ${error.message}</p>`;
+      }
+    }
+
+    async function testBrands() {
+      const resultDiv = document.getElementById('brandResult');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<p class="loading">⏳ 请求中...</p>';
+
+      try {
+        const response = await fetch('/api/admin/brands');
+        const data = await response.json();
+
+        resultDiv.innerHTML = `
+          <p class="${data.code === 200 ? 'success' : 'error'}">
+            <strong>状态:</strong> ${response.status}<br>
+            <strong>品牌数量:</strong> ${data.data?.items?.length || 0}
+          </p>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `<p class="error">❌ 错误: ${error.message}</p>`;
+      }
+    }
+
+    async function testAdmins() {
+      const resultDiv = document.getElementById('adminResult');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<p class="loading">⏳ 请求中...</p>';
+
+      try {
+        const response = await fetch('/api/admin');
+        const data = await response.json();
+
+        resultDiv.innerHTML = `
+          <p class="${data.code === 200 ? 'success' : 'error'}">
+            <strong>状态:</strong> ${response.status}<br>
+            <strong>管理员数量:</strong> ${data.data?.list?.length || 0}
+          </p>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `<p class="error">❌ 错误: ${error.message}</p>`;
+      }
+    }
+
+    async function testInit() {
+      const resultDiv = document.getElementById('initResult');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<p class="loading">⏳ 初始化中，请稍候...</p>';
+
+      try {
+        const response = await fetch('/api/init-data', { method: 'POST' });
+        const data = await response.json();
+
+        let html = `<p class="${data.code === 200 ? 'success' : 'error'}">
+          <strong>状态:</strong> ${data.code === 200 ? '✅ 初始化成功' : '❌ 初始化失败'}
+        </p>`;
+
+        if (data.data?.results) {
+          html += '<ul>';
+          data.data.results.forEach(result => {
+            html += `<li>${result}</li>`;
+          });
+          html += '</ul>';
+        }
+
+        resultDiv.innerHTML = html;
+      } catch (error) {
+        resultDiv.innerHTML = `<p class="error">❌ 错误: ${error.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
