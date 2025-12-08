@@ -13,7 +13,13 @@
               :src="row.logo"
               style="width: 60px; height: 60px"
               fit="contain"
-            />
+            >
+              <template #error>
+                <div class="image-slot">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
             <span v-else>-</span>
           </template>
         </el-table-column>
@@ -31,6 +37,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Picture } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const loading = ref(false)
@@ -71,5 +78,16 @@ onMounted(() => {
 
 .table-card {
   margin-bottom: 16px;
+}
+
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 24px;
 }
 </style>

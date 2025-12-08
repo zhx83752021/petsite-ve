@@ -122,7 +122,74 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ products 字段: ${err.message}`);
     }
 
-    // 7. 更新现有数据
+    // 7. 创建 orders 表
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS orders (
+          id SERIAL PRIMARY KEY,
+          order_no VARCHAR(50) UNIQUE NOT NULL,
+          user_id INTEGER NOT NULL,
+          total_amount DECIMAL(10, 2) NOT NULL,
+          payment_method VARCHAR(20),
+          payment_status VARCHAR(20) DEFAULT 'pending',
+          shipping_status VARCHAR(20) DEFAULT 'pending',
+          order_status VARCHAR(20) DEFAULT 'pending',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      results.push('✅ orders 表创建成功');
+    } catch (err: any) {
+      results.push(`⚠️ orders 表: ${err.message}`);
+    }
+
+    // 8. 创建 order_items 表
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS order_items (
+          id SERIAL PRIMARY KEY,
+          order_id INTEGER NOT NULL,
+          product_id INTEGER NOT NULL,
+          product_name VARCHAR(200) NOT NULL,
+          sku_name VARCHAR(200),
+          price DECIMAL(10, 2) NOT NULL,
+          quantity INTEGER NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      results.push('✅ order_items 表创建成功');
+    } catch (err: any) {
+      results.push(`⚠️ order_items 表: ${err.message}`);
+    }
+
+    // 9. 插入订单示例数据
+    try {
+      const orderResult = await db.query(`
+        INSERT INTO orders (order_no, user_id, total_amount, payment_method, payment_status, shipping_status, order_status) VALUES
+        ('ORDER' || to_char(NOW(), 'YYYYMMDD') || '001', 1, 299.00, 'alipay', 'paid', 'shipped', 'pending'),
+        ('ORDER' || to_char(NOW(), 'YYYYMMDD') || '002', 1, 158.00, 'wechat', 'paid', 'pending', 'pending'),
+        ('ORDER' || to_char(NOW(), 'YYYYMMDD') || '003', 1, 599.00, 'alipay', 'pending', 'pending', 'pending'),
+        ('ORDER' || to_char(NOW(), 'YYYYMMDD') || '004', 1, 89.00, 'wechat', 'paid', 'delivered', 'completed'),
+        ('ORDER' || to_char(NOW(), 'YYYYMMDD') || '005', 1, 239.00, 'alipay', 'paid', 'shipped', 'pending')
+        ON CONFLICT (order_no) DO NOTHING
+        RETURNING id
+      `);
+
+      if (orderResult.rows.length > 0) {
+        // 为第一个订单添加订单项
+        await db.query(`
+          INSERT INTO order_items (order_id, product_id, product_name, sku_name, price, quantity) VALUES
+          (${orderResult.rows[0].id}, 1, '皇家猫粮', '成猫粮 2kg', 299.00, 1)
+          ON CONFLICT DO NOTHING
+        `);
+      }
+
+      results.push('✅ 订单示例数据插入成功');
+    } catch (err: any) {
+      results.push(`⚠️ 订单数据: ${err.message}`);
+    }
+
+    // 10. 更新现有数据
     try {
       await db.query(`UPDATE categories SET sort = id WHERE sort IS NULL OR sort = 0`);
       await db.query(`UPDATE products SET description = '优质宠物商品，值得信赖' WHERE description IS NULL OR description = ''`);

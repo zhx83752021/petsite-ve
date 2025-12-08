@@ -3,8 +3,10 @@
     <!-- 侧边栏 -->
     <el-aside :width="isCollapse ? '64px' : '240px'" class="admin-aside">
       <div class="logo">
-        <img v-if="!isCollapse" src="@/assets/logo.svg" alt="宠物网">
-        <span v-if="!isCollapse">管理后台</span>
+        <el-icon v-if="!isCollapse" :size="32" color="#ffffff">
+          <Shop />
+        </el-icon>
+        <span v-if="!isCollapse" class="logo-text">宠物网 管理后台</span>
       </div>
 
       <el-menu :default-active="activeMenu" :collapse="isCollapse" :unique-opened="true" router class="admin-menu">
@@ -188,6 +190,7 @@ import {
   Fold,
   Expand,
   ArrowDown,
+  Shop,
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -251,8 +254,10 @@ const handleCommand = async (command: string) => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.logo img {
-  height: 32px;
+.logo-text {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .admin-menu {
