@@ -162,7 +162,15 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ order_items 表: ${err.message}`);
     }
 
-    // 9. 插入订单示例数据
+    // 9. 为 orders 表添加缺失字段
+    try {
+      await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_status VARCHAR(20) DEFAULT 'pending'`);
+      results.push('✅ orders 表字段补充成功');
+    } catch (err: any) {
+      results.push(`⚠️ orders 字段: ${err.message}`);
+    }
+
+    // 10. 插入订单示例数据
     try {
       const orderResult = await db.query(`
         INSERT INTO orders (order_no, user_id, total_amount, payment_method, payment_status, shipping_status, order_status) VALUES
@@ -189,7 +197,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ 订单数据: ${err.message}`);
     }
 
-    // 10. 更新现有数据
+    // 11. 更新现有数据
     try {
       await db.query(`UPDATE categories SET sort = id WHERE sort IS NULL OR sort = 0`);
       await db.query(`UPDATE products SET description = '优质宠物商品，值得信赖' WHERE description IS NULL OR description = ''`);
