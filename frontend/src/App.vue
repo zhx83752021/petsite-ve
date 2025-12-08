@@ -17,6 +17,7 @@ onMounted(() => {
 </script>
 
 <style>
+/* 宠物网站 - Updated 2024-12-08 */
 #app {
   width: 100%;
   min-height: 100vh;
