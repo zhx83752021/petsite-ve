@@ -26,7 +26,7 @@ export const productApi = {
    */
   getDetail(id: string | number) {
     return request({
-      url: `/shop/products/${id}`,
+      url: `/api/shop/products/${id}`,
       method: 'get',
     })
   },
