@@ -5,10 +5,6 @@
   "installCommand": "npm install && cd frontend && npm install",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
       "source": "/init-database.html",
       "destination": "/init-database.html"
     },
@@ -17,7 +13,7 @@
       "destination": "/test-api.html"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ]
