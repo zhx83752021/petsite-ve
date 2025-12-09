@@ -22,6 +22,80 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     const db = getPool();
     const results: string[] = [];
 
+    // 0. 创建 categories 表
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS categories (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          parent_id INTEGER DEFAULT 0,
+          icon VARCHAR(255),
+          sort INTEGER DEFAULT 0,
+          description TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      results.push('✅ categories 表创建成功');
+    } catch (err: any) {
+      results.push(`⚠️ categories 表: ${err.message}`);
+    }
+
+    // 0.1 插入分类数据
+    try {
+      await db.query(`
+        INSERT INTO categories (name, parent_id, icon, sort, description) VALUES
+        ('猫粮', 0, '🐱', 1, '各类猫粮商品'),
+        ('狗粮', 0, '🐶', 2, '各类狗粮商品'),
+        ('零食', 0, '🍖', 3, '宠物零食'),
+        ('用品', 0, '🎾', 4, '宠物用品'),
+        ('玩具', 0, '🧸', 5, '宠物玩具')
+        ON CONFLICT DO NOTHING
+      `);
+      results.push('✅ 分类数据插入成功');
+    } catch (err: any) {
+      results.push(`⚠️ 分类数据: ${err.message}`);
+    }
+
+    // 0.2 创建 products 表
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS products (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(200) NOT NULL,
+          category_id INTEGER NOT NULL,
+          brand_id INTEGER,
+          description TEXT,
+          images JSONB DEFAULT '[]',
+          status VARCHAR(20) DEFAULT 'active',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      results.push('✅ products 表创建成功');
+    } catch (err: any) {
+      results.push(`⚠️ products 表: ${err.message}`);
+    }
+
+    // 0.3 创建 product_skus 表
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS product_skus (
+          id SERIAL PRIMARY KEY,
+          product_id INTEGER NOT NULL,
+          name VARCHAR(200) NOT NULL,
+          price DECIMAL(10, 2) NOT NULL,
+          stock INTEGER DEFAULT 0,
+          specs JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      results.push('✅ product_skus 表创建成功');
+    } catch (err: any) {
+      results.push(`⚠️ product_skus 表: ${err.message}`);
+    }
+
     // 1. 创建 brands 表
     try {
       await db.query(`
@@ -184,7 +258,48 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ 订单数据: ${err.message}`);
     }
 
-    // 11. 更新现有数据
+    // 11. 插入商品数据
+    try {
+      const productResult = await db.query(`
+        INSERT INTO products (name, category_id, brand_id, description, images) VALUES
+        ('皇家猫粮成猫粮', 1, 1, '专为成年猫设计的全价猫粮，营养均衡，适口性好', '["https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800"]'),
+        ('宝路狗粮成犬粮', 2, 2, '优质狗粮，富含蛋白质和维生素，适合成年犬', '["https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800"]'),
+        ('伟嘉幼猫粮', 1, 3, '专为幼猫设计，易消化易吸收', '["https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800"]'),
+        ('比瑞吉鸡肉粒', 3, 4, '纯鸡肉制作，营养美味的宠物零食', '["https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800"]'),
+        ('冠能幼犬粮', 2, 5, '富含DHA和益生菌，促进幼犬健康成长', '["https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800"]'),
+        ('猫咪玩具球', 5, NULL, '互动玩具，让猫咪更活泼', '["https://images.unsplash.com/photo-1579547945413-497e1b99dac0?w=800"]'),
+        ('狗狗磨牙棒', 3, NULL, '健康磨牙，清洁牙齿', '["https://images.unsplash.com/photo-1598134493553-a5af9c28c8c8?w=800"]'),
+        ('宠物饮水器', 4, NULL, '自动循环过滤饮水器', '["https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=800"]')
+        ON CONFLICT DO NOTHING
+        RETURNING id
+      `);
+
+      // 为每个商品插入SKU
+      if (productResult.rows.length > 0) {
+        const productIds = productResult.rows.map(r => r.id);
+
+        await db.query(`
+          INSERT INTO product_skus (product_id, name, price, stock, specs) VALUES
+          (${productIds[0] || 1}, '2kg装', 299.00, 100, '{"weight": "2kg"}'),
+          (${productIds[0] || 1}, '5kg装', 599.00, 50, '{"weight": "5kg"}'),
+          (${productIds[1] || 2}, '3kg装', 158.00, 80, '{"weight": "3kg"}'),
+          (${productIds[1] || 2}, '10kg装', 468.00, 30, '{"weight": "10kg"}'),
+          (${productIds[2] || 3}, '1.5kg装', 189.00, 60, '{"weight": "1.5kg"}'),
+          (${productIds[3] || 4}, '500g装', 89.00, 120, '{"weight": "500g"}'),
+          (${productIds[4] || 5}, '5kg装', 239.00, 40, '{"weight": "5kg"}'),
+          (${productIds[5] || 6}, '单个装', 29.00, 200, '{"color": "随机"}'),
+          (${productIds[6] || 7}, '3根装', 45.00, 150, '{"count": "3"}'),
+          (${productIds[7] || 8}, '2L容量', 139.00, 80, '{"capacity": "2L"}')
+          ON CONFLICT DO NOTHING
+        `);
+      }
+
+      results.push('✅ 商品和SKU数据插入成功');
+    } catch (err: any) {
+      results.push(`⚠️ 商品数据: ${err.message}`);
+    }
+
+    // 12. 更新现有数据
     try {
       await db.query(`UPDATE categories SET sort = id WHERE sort IS NULL OR sort = 0`);
       await db.query(`UPDATE products SET description = '优质宠物商品，值得信赖' WHERE description IS NULL OR description = ''`);
