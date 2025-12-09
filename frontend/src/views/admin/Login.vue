@@ -89,7 +89,8 @@ const handleLogin = async () => {
 
     await adminStore.login(form.username, form.password)
     ElMessage.success('登录成功')
-    router.push('/admin')
+    // 直接跳转到后台首页
+    router.push('/admin/dashboard')
   } catch (error: any) {
     if (error !== false) {
       ElMessage.error(error.response?.data?.message || '登录失败,请检查账号密码')
