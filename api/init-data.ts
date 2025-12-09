@@ -146,9 +146,10 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ product_skus 表: ${err.message}`);
     }
 
-    // 0.4 确保 product_skus 表有 name 字段
+    // 0.4 确保 product_skus 表有必要字段
     try {
       await db.query(`ALTER TABLE product_skus ADD COLUMN IF NOT EXISTS name VARCHAR(200)`);
+      await db.query(`ALTER TABLE product_skus ADD COLUMN IF NOT EXISTS specs JSONB DEFAULT '{}'`);
       results.push('✅ product_skus 表字段检查完成');
     } catch (err: any) {
       results.push(`⚠️ product_skus 字段: ${err.message}`);
@@ -264,6 +265,8 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
     // 7.1 确保 orders 表字段兼容性
     try {
+      // 删除或修改 final_amount 字段的 NOT NULL 约束
+      await db.query(`ALTER TABLE orders DROP COLUMN IF EXISTS final_amount`);
       // 尝试添加 order_status 字段（如果不存在）
       await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_status VARCHAR(20) DEFAULT 'pending'`);
       // 如果数据库使用 status 字段，复制数据到 order_status
