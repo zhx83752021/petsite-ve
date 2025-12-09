@@ -1,18 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { Pool } from 'pg';
-
-let pool: Pool | null = null;
-
-const getPool = () => {
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 2,
-      idleTimeoutMillis: 1000,
-    });
-  }
-  return pool;
-};
+import { getPool } from '../_db';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -174,14 +161,24 @@ export default async (req: VercelRequest, res: VercelResponse) => {
   } catch (error: any) {
     console.error('Orders API error:', error);
 
-    // 如果表不存在或任何数据库错误，返回空列表
-    return res.status(200).json({
-      code: 200,
-      message: 'success',
-      data: {
-        items: [],
-        total: 0
-      }
+    // 如果表不存在，返回提示需要初始化
+    if (error.message && error.message.includes('does not exist')) {
+      return res.status(200).json({
+        code: 200,
+        message: 'success',
+        data: {
+          items: [],
+          total: 0,
+          hint: '请先初始化数据库'
+        }
+      });
+    }
+
+    // 其他错误返回错误信息
+    return res.status(500).json({
+      code: 500,
+      message: '查询订单失败',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

@@ -22,7 +22,38 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     const db = getPool();
     const results: string[] = [];
 
-    // 0. 创建 categories 表
+    // 0. 创建 users 表
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(50) UNIQUE NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          email VARCHAR(100),
+          phone VARCHAR(20),
+          role VARCHAR(20) DEFAULT 'user',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      results.push('✅ users 表创建成功');
+    } catch (err: any) {
+      results.push(`⚠️ users 表: ${err.message}`);
+    }
+
+    // 0.1 插入测试用户
+    try {
+      await db.query(`
+        INSERT INTO users (username, password, email, role) VALUES
+        ('testuser', '$2a$10$YourHashedPasswordHere', 'test@example.com', 'user')
+        ON CONFLICT (username) DO NOTHING
+      `);
+      results.push('✅ 测试用户创建成功');
+    } catch (err: any) {
+      results.push(`⚠️ 测试用户: ${err.message}`);
+    }
+
+    // 1. 创建 categories 表
     try {
       await db.query(`
         CREATE TABLE IF NOT EXISTS categories (
