@@ -1,4 +1,4 @@
-import request from './request'
+import adminRequest from './adminRequest'
 
 /**
  * 管理员登录请求参数
@@ -91,42 +91,42 @@ export const adminApi = {
    * 管理员登录
    */
   login(data: AdminLoginParams) {
-    return request.post<AdminLoginResponse>('/admin/login', data)
+    return adminRequest.post<AdminLoginResponse>('/admin/login', data)
   },
 
   /**
    * 获取管理员列表
    */
   getList(params: AdminListParams) {
-    return request.get<AdminListResponse>('/admin', { params })
+    return adminRequest.get<AdminListResponse>('/admin', { params })
   },
 
   /**
    * 创建管理员
    */
   create(data: CreateAdminParams) {
-    return request.post<AdminInfo>('/admin', data)
+    return adminRequest.post<AdminInfo>('/admin', data)
   },
 
   /**
    * 更新管理员
    */
   update(id: number, data: UpdateAdminParams) {
-    return request.put<AdminInfo>(`/admin/${id}`, data)
+    return adminRequest.put<AdminInfo>(`/admin/${id}`, data)
   },
 
   /**
    * 重置密码
    */
   resetPassword(id: number, password: string) {
-    return request.post(`/admin/${id}/reset-password`, { password })
+    return adminRequest.post(`/admin/${id}/reset-password`, { password })
   },
 
   /**
    * 删除管理员
    */
   delete(id: number) {
-    return request.delete(`/admin/${id}`)
+    return adminRequest.delete(`/admin/${id}`)
   },
 
   // ==================== 商品管理 ====================
@@ -140,35 +140,35 @@ export const adminApi = {
     categoryId?: number
     status?: number
   }) {
-    return request.get('/admin/products', { params })
+    return adminRequest.get('/admin/products', { params })
   },
 
   /**
    * 获取商品详情（管理后台）
    */
   getProduct(id: number) {
-    return request.get(`/admin/products/${id}`)
+    return adminRequest.get(`/admin/products/${id}`)
   },
 
   /**
    * 创建商品
    */
   createProduct(data: any) {
-    return request.post('/admin/products', data)
+    return adminRequest.post('/admin/products', data)
   },
 
   /**
    * 更新商品
    */
   updateProduct(id: number, data: any) {
-    return request.put(`/admin/products/${id}`, data)
+    return adminRequest.put(`/admin/products/${id}`, data)
   },
 
   /**
    * 删除商品
    */
   deleteProduct(id: number) {
-    return request.delete(`/admin/products/${id}`)
+    return adminRequest.delete(`/admin/products/${id}`)
   },
 
   // ==================== 分类管理 ====================
@@ -176,14 +176,14 @@ export const adminApi = {
    * 获取分类列表（管理后台）
    */
   getCategories(params?: { includeDisabled?: boolean }) {
-    return request.get('/admin/categories', { params })
+    return adminRequest.get('/admin/categories', { params })
   },
 
   /**
    * 获取分类详情
    */
   getCategory(id: number) {
-    return request.get(`/admin/categories/${id}`)
+    return adminRequest.get(`/admin/categories/${id}`)
   },
 
   /**
@@ -196,21 +196,21 @@ export const adminApi = {
     sort?: number
     status?: number
   }) {
-    return request.post('/admin/categories', data)
+    return adminRequest.post('/admin/categories', data)
   },
 
   /**
    * 更新分类
    */
   updateCategory(id: number, data: any) {
-    return request.put(`/admin/categories/${id}`, data)
+    return adminRequest.put(`/admin/categories/${id}`, data)
   },
 
   /**
    * 删除分类
    */
   deleteCategory(id: number) {
-    return request.delete(`/admin/categories/${id}`)
+    return adminRequest.delete(`/admin/categories/${id}`)
   },
 
   // ==================== 订单管理 ====================
@@ -225,21 +225,21 @@ export const adminApi = {
     startDate?: string
     endDate?: string
   }) {
-    return request.get('/admin/orders', { params })
+    return adminRequest.get('/admin/orders', { params })
   },
 
   /**
    * 获取订单详情（管理后台）
    */
   getOrder(id: number) {
-    return request.get(`/admin/orders/${id}`)
+    return adminRequest.get(`/admin/orders/${id}`)
   },
 
   /**
    * 更新订单状态
    */
   updateOrderStatus(id: number, data: { status: string; remark?: string }) {
-    return request.put(`/admin/orders/${id}`, data)
+    return adminRequest.put(`/admin/orders/${id}`, data)
   },
 
   // ==================== 数据导出 ====================
@@ -251,13 +251,13 @@ export const adminApi = {
     endDate?: string
     status?: string
   }) {
-    return request.get('/admin/export/orders', { params, responseType: 'blob' })
+    return adminRequest.get('/admin/export/orders', { params, responseType: 'blob' })
   },
 
   /**
    * 导出商品数据
    */
   exportProducts(params?: { categoryId?: number; status?: number }) {
-    return request.get('/admin/export/products', { params, responseType: 'blob' })
+    return adminRequest.get('/admin/export/products', { params, responseType: 'blob' })
   },
 }
