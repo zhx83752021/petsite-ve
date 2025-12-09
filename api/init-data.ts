@@ -306,6 +306,14 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ order_items 表: ${err.message}`);
     }
 
+    // 8.1 确保 order_items 表有必要字段
+    try {
+      await db.query(`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS sku_name VARCHAR(200)`);
+      results.push('✅ order_items 表字段检查完成');
+    } catch (err: any) {
+      results.push(`⚠️ order_items 字段: ${err.message}`);
+    }
+
     // 9. 为 orders 表添加缺失字段
     try {
       await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_status VARCHAR(20) DEFAULT 'pending'`);
