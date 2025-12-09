@@ -1,4 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import * as bcrypt from 'bcryptjs';
 import { getPool } from './_db';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
@@ -94,17 +95,17 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
     // 0.3 插入默认管理员（admin/admin123）
     try {
-      // bcrypt hash for 'admin123'
-      const hashedPassword = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+      // 实时生成密码哈希
+      const hashedPassword = await bcrypt.hash('admin123', 10);
       await db.query(`
         INSERT INTO admins (username, password, real_name, email, status) VALUES
-        ('admin', '${hashedPassword}', '系统管理员', 'admin@petsite.com', 1)
+        ($1, $2, $3, $4, $5)
         ON CONFLICT (username) DO UPDATE SET
           password = EXCLUDED.password,
           real_name = EXCLUDED.real_name,
           email = EXCLUDED.email,
           status = EXCLUDED.status
-      `);
+      `, ['admin', hashedPassword, '系统管理员', 'admin@petsite.com', 1]);
       results.push('✅ 默认管理员创建/更新成功（admin/admin123）');
     } catch (err: any) {
       results.push(`⚠️ 默认管理员: ${err.message}`);
