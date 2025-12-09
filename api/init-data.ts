@@ -86,8 +86,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     // 0.2.1 确保 admins 表有必要字段
     try {
       await db.query(`ALTER TABLE admins ADD COLUMN IF NOT EXISTS real_name VARCHAR(50)`);
-      // 如果字段已存在但名称不同，尝试添加
-      await db.query(`ALTER TABLE admins ADD COLUMN IF NOT EXISTS realName VARCHAR(50)`);
+      await db.query(`ALTER TABLE admins ADD COLUMN IF NOT EXISTS status SMALLINT DEFAULT 1`);
       results.push('✅ admins 表字段检查完成');
     } catch (err: any) {
       results.push(`⚠️ admins 字段: ${err.message}`);
@@ -356,6 +355,9 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       await db.query(`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS sku_name VARCHAR(200)`);
       // 删除 subtotal 字段（如果存在），我们使用 price * quantity 计算
       await db.query(`ALTER TABLE order_items DROP COLUMN IF EXISTS subtotal`);
+      // 删除外键约束（如果存在）
+      await db.query(`ALTER TABLE order_items DROP CONSTRAINT IF EXISTS order_items_product_id_fkey`);
+      await db.query(`ALTER TABLE order_items DROP CONSTRAINT IF EXISTS order_items_order_id_fkey`);
       results.push('✅ order_items 表字段检查完成');
     } catch (err: any) {
       results.push(`⚠️ order_items 字段: ${err.message}`);
