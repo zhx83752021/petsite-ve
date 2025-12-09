@@ -388,14 +388,14 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     try {
       const productResult = await db.query(`
         INSERT INTO products (name, category_id, brand_id, description, images) VALUES
-        ('皇家猫粮成猫粮', 1, 1, '专为成年猫设计的全价猫粮，营养均衡，适口性好', '["https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800"]'),
-        ('宝路狗粮成犬粮', 2, 2, '优质狗粮，富含蛋白质和维生素，适合成年犬', '["https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800"]'),
-        ('伟嘉幼猫粮', 1, 3, '专为幼猫设计，易消化易吸收', '["https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800"]'),
-        ('比瑞吉鸡肉粒', 3, 4, '纯鸡肉制作，营养美味的宠物零食', '["https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800"]'),
-        ('冠能幼犬粮', 2, 5, '富含DHA和益生菌，促进幼犬健康成长', '["https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800"]'),
-        ('猫咪玩具球', 5, NULL, '互动玩具，让猫咪更活泼', '["https://images.unsplash.com/photo-1579547945413-497e1b99dac0?w=800"]'),
-        ('狗狗磨牙棒', 3, NULL, '健康磨牙，清洁牙齿', '["https://images.unsplash.com/photo-1598134493553-a5af9c28c8c8?w=800"]'),
-        ('宠物饮水器', 4, NULL, '自动循环过滤饮水器', '["https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=800"]')
+        ('皇家猫粮成猫粮', 1, 1, '专为成年猫设计的全价猫粮，营养均衡，适口性好', '["https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800&q=80"]'),
+        ('宝路狗粮成犬粮', 2, 2, '优质狗粮，富含蛋白质和维生素，适合成年犬', '["https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800&q=80"]'),
+        ('伟嘉幼猫粮', 1, 3, '专为幼猫设计，易消化易吸收', '["https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&q=80"]'),
+        ('比瑞吉鸡肉粒', 3, 4, '纯鸡肉制作，营养美味的宠物零食', '["https://images.unsplash.com/photo-1615497001839-b0a0eac3274c?w=800&q=80"]'),
+        ('冠能幼犬粮', 2, 5, '富含DHA和益生菌，促进幼犬健康成长', '["https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&q=80"]'),
+        ('猫咪玩具球', 5, NULL, '互动玩具，让猫咪更活泼', '["https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=800&q=80"]'),
+        ('狗狗磨牙棒', 3, NULL, '健康磨牙，清洁牙齿', '["https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&q=80"]'),
+        ('宠物饮水器', 4, NULL, '自动循环过滤饮水器', '["https://images.unsplash.com/photo-1625316708582-7c38734be31d?w=800&q=80"]')
         ON CONFLICT DO NOTHING
         RETURNING id
       `);
