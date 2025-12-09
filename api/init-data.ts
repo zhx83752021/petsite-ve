@@ -83,6 +83,16 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ admins 表: ${err.message}`);
     }
 
+    // 0.2.1 确保 admins 表有必要字段
+    try {
+      await db.query(`ALTER TABLE admins ADD COLUMN IF NOT EXISTS real_name VARCHAR(50)`);
+      // 如果字段已存在但名称不同，尝试添加
+      await db.query(`ALTER TABLE admins ADD COLUMN IF NOT EXISTS realName VARCHAR(50)`);
+      results.push('✅ admins 表字段检查完成');
+    } catch (err: any) {
+      results.push(`⚠️ admins 字段: ${err.message}`);
+    }
+
     // 0.3 插入默认管理员（admin/admin123）
     try {
       // bcrypt hash for 'admin123'
@@ -344,6 +354,8 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     // 8.1 确保 order_items 表有必要字段
     try {
       await db.query(`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS sku_name VARCHAR(200)`);
+      // 删除 subtotal 字段（如果存在），我们使用 price * quantity 计算
+      await db.query(`ALTER TABLE order_items DROP COLUMN IF EXISTS subtotal`);
       results.push('✅ order_items 表字段检查完成');
     } catch (err: any) {
       results.push(`⚠️ order_items 字段: ${err.message}`);
