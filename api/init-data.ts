@@ -148,6 +148,8 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
     // 0.4 确保 product_skus 表有必要字段
     try {
+      // 删除不需要的 sku_code 字段
+      await db.query(`ALTER TABLE product_skus DROP COLUMN IF EXISTS sku_code`);
       await db.query(`ALTER TABLE product_skus ADD COLUMN IF NOT EXISTS name VARCHAR(200)`);
       await db.query(`ALTER TABLE product_skus ADD COLUMN IF NOT EXISTS specs JSONB DEFAULT '{}'`);
       results.push('✅ product_skus 表字段检查完成');
