@@ -1,22 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { Pool } from 'pg';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-
-// 创建数据库连接池
-let pool: Pool | null = null;
-
-const getPool = () => {
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 2,
-      idleTimeoutMillis: 1000,
-      connectionTimeoutMillis: 5000,
-    });
-  }
-  return pool;
-};
+import { getPool } from '../_db';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
   // 设置 CORS

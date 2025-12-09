@@ -1,18 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { Pool } from 'pg';
-
-let pool: Pool | null = null;
-
-const getPool = () => {
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 2,
-      idleTimeoutMillis: 1000,
-    });
-  }
-  return pool;
-};
+import { getPool } from '../../_db';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
