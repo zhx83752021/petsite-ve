@@ -28,7 +28,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
           o.payment_method,
           o.payment_status,
           o.shipping_status,
-          o.order_status,
+          COALESCE(o.order_status, o.status) as order_status,
           o.created_at,
           o.updated_at
         FROM orders o
@@ -40,7 +40,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       let paramIndex = 1;
 
       if (status) {
-        query += ` AND o.order_status = $${paramIndex}`;
+        query += ` AND COALESCE(o.order_status, o.status) = $${paramIndex}`;
         params.push(status);
         paramIndex++;
       }

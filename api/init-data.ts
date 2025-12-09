@@ -81,15 +81,25 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ categories 字段清理: ${err.message}`);
     }
 
-    // 0.2 插入分类数据
+    // 0.2 删除外键约束（如果存在）
+    try {
+      await db.query(`
+        ALTER TABLE categories DROP CONSTRAINT IF EXISTS categories_parent_id_fkey
+      `);
+      results.push('✅ categories 外键约束清理完成');
+    } catch (err: any) {
+      results.push(`⚠️ categories 外键清理: ${err.message}`);
+    }
+
+    // 0.3 插入分类数据（parent_id 使用 NULL 而不是 0）
     try {
       await db.query(`
         INSERT INTO categories (name, parent_id, icon, sort, description) VALUES
-        ('猫粮', 0, '🐱', 1, '各类猫粮商品'),
-        ('狗粮', 0, '🐶', 2, '各类狗粮商品'),
-        ('零食', 0, '🍖', 3, '宠物零食'),
-        ('用品', 0, '🎾', 4, '宠物用品'),
-        ('玩具', 0, '🧸', 5, '宠物玩具')
+        ('猫粮', NULL, '🐱', 1, '各类猫粮商品'),
+        ('狗粮', NULL, '🐶', 2, '各类狗粮商品'),
+        ('零食', NULL, '🍖', 3, '宠物零食'),
+        ('用品', NULL, '🎾', 4, '宠物用品'),
+        ('玩具', NULL, '🧸', 5, '宠物玩具')
         ON CONFLICT DO NOTHING
       `);
       results.push('✅ 分类数据插入成功');
@@ -134,6 +144,14 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push('✅ product_skus 表创建成功');
     } catch (err: any) {
       results.push(`⚠️ product_skus 表: ${err.message}`);
+    }
+
+    // 0.4 确保 product_skus 表有 name 字段
+    try {
+      await db.query(`ALTER TABLE product_skus ADD COLUMN IF NOT EXISTS name VARCHAR(200)`);
+      results.push('✅ product_skus 表字段检查完成');
+    } catch (err: any) {
+      results.push(`⚠️ product_skus 字段: ${err.message}`);
     }
 
     // 1. 创建 brands 表
@@ -234,7 +252,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
           payment_method VARCHAR(20),
           payment_status VARCHAR(20) DEFAULT 'pending',
           shipping_status VARCHAR(20) DEFAULT 'pending',
-          order_status VARCHAR(20) DEFAULT 'pending',
+          status VARCHAR(20) DEFAULT 'pending',
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         )
@@ -242,6 +260,17 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push('✅ orders 表创建成功');
     } catch (err: any) {
       results.push(`⚠️ orders 表: ${err.message}`);
+    }
+
+    // 7.1 确保 orders 表字段兼容性
+    try {
+      // 尝试添加 order_status 字段（如果不存在）
+      await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_status VARCHAR(20) DEFAULT 'pending'`);
+      // 如果数据库使用 status 字段，复制数据到 order_status
+      await db.query(`UPDATE orders SET order_status = status WHERE order_status IS NULL`);
+      results.push('✅ orders 表字段兼容处理完成');
+    } catch (err: any) {
+      results.push(`⚠️ orders 字段兼容: ${err.message}`);
     }
 
     // 8. 创建 order_items 表
@@ -274,7 +303,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     // 10. 插入订单示例数据
     try {
       const orderResult = await db.query(`
-        INSERT INTO orders (order_no, user_id, total_amount, payment_method, payment_status, shipping_status, order_status) VALUES
+        INSERT INTO orders (order_no, user_id, total_amount, payment_method, payment_status, shipping_status, status) VALUES
         ('ORDER' || to_char(NOW(), 'YYYYMMDD') || '001', 1, 299.00, 'alipay', 'paid', 'shipped', 'pending'),
         ('ORDER' || to_char(NOW(), 'YYYYMMDD') || '002', 1, 158.00, 'wechat', 'paid', 'pending', 'pending'),
         ('ORDER' || to_char(NOW(), 'YYYYMMDD') || '003', 1, 599.00, 'alipay', 'pending', 'pending', 'pending'),
