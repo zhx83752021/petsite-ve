@@ -72,7 +72,16 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push(`⚠️ categories 表: ${err.message}`);
     }
 
-    // 0.1 插入分类数据
+    // 0.1 删除不需要的字段
+    try {
+      // 删除 slug 字段（如果存在），因为我们的数据模型不需要它
+      await db.query(`ALTER TABLE categories DROP COLUMN IF EXISTS slug`);
+      results.push('✅ categories 表字段清理完成');
+    } catch (err: any) {
+      results.push(`⚠️ categories 字段清理: ${err.message}`);
+    }
+
+    // 0.2 插入分类数据
     try {
       await db.query(`
         INSERT INTO categories (name, parent_id, icon, sort, description) VALUES
