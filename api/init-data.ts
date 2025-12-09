@@ -22,7 +22,16 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     const db = getPool();
     const results: string[] = [];
 
-    // 0. 创建 users 表
+    // 0. 清空所有表数据（保留表结构）
+    try {
+      await db.query(`TRUNCATE TABLE order_items, orders, product_skus, products, categories, brands, posts, users RESTART IDENTITY CASCADE`);
+      results.push('✅ 已清空所有表数据');
+    } catch (err: any) {
+      // 如果表不存在，忽略错误
+      results.push(`⚠️ 清空表: ${err.message}`);
+    }
+
+    // 1. 创建 users 表
     try {
       await db.query(`
         CREATE TABLE IF NOT EXISTS users (
