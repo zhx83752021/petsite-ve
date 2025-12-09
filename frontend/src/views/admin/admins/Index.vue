@@ -117,6 +117,16 @@
           />
         </el-form-item>
 
+        <el-form-item v-if="isEdit" label="修改密码">
+          <el-input
+            v-model="form.newPassword"
+            type="password"
+            placeholder="留空则不修改密码"
+            show-password
+            clearable
+          />
+        </el-form-item>
+
         <el-form-item label="姓名" prop="realName">
           <el-input v-model="form.realName" placeholder="请输入姓名" />
         </el-form-item>
@@ -176,6 +186,7 @@ const form = reactive({
   id: 0,
   username: '',
   password: '',
+  newPassword: '',
   realName: '',
   email: '',
   phone: '',
@@ -227,6 +238,7 @@ const handleAdd = () => {
     id: 0,
     username: '',
     password: '',
+    newPassword: '',
     realName: '',
     email: '',
     phone: '',
@@ -241,6 +253,7 @@ const handleEdit = (row: AdminInfo) => {
   Object.assign(form, {
     id: row.id,
     username: row.username,
+    newPassword: '',
     realName: row.realName,
     email: row.email,
     phone: row.phone,
@@ -255,12 +268,17 @@ const handleSubmit = async () => {
     submitLoading.value = true
 
     if (isEdit.value) {
-      await adminApi.update(form.id, {
+      const updateData: any = {
         realName: form.realName,
         email: form.email,
         phone: form.phone,
         status: form.status,
-      })
+      }
+      // 如果输入了新密码，则包含在更新数据中
+      if (form.newPassword) {
+        updateData.password = form.newPassword
+      }
+      await adminApi.update(form.id, updateData)
       ElMessage.success('更新成功')
     } else {
       await adminApi.create({

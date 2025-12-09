@@ -24,7 +24,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
     // 0. 清空所有表数据（保留表结构）
     try {
-      await db.query(`TRUNCATE TABLE order_items, orders, product_skus, products, categories, brands, posts, users RESTART IDENTITY CASCADE`);
+      await db.query(`TRUNCATE TABLE order_items, orders, product_skus, products, categories, brands, posts, users, admins RESTART IDENTITY CASCADE`);
       results.push('✅ 已清空所有表数据');
     } catch (err: any) {
       // 如果表不存在，忽略错误
@@ -60,6 +60,41 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       results.push('✅ 测试用户创建成功');
     } catch (err: any) {
       results.push(`⚠️ 测试用户: ${err.message}`);
+    }
+
+    // 0.2 创建 admins 表
+    try {
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS admins (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(50) UNIQUE NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          real_name VARCHAR(50) NOT NULL,
+          email VARCHAR(100),
+          phone VARCHAR(20),
+          status SMALLINT NOT NULL DEFAULT 1,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          deleted_at TIMESTAMP
+        )
+      `);
+      results.push('✅ admins 表创建成功');
+    } catch (err: any) {
+      results.push(`⚠️ admins 表: ${err.message}`);
+    }
+
+    // 0.3 插入默认管理员（admin/admin123）
+    try {
+      // bcrypt hash for 'admin123'
+      const hashedPassword = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+      await db.query(`
+        INSERT INTO admins (username, password, real_name, email, status) VALUES
+        ('admin', '${hashedPassword}', '系统管理员', 'admin@petsite.com', 1)
+        ON CONFLICT (username) DO NOTHING
+      `);
+      results.push('✅ 默认管理员创建成功（admin/admin123）');
+    } catch (err: any) {
+      results.push(`⚠️ 默认管理员: ${err.message}`);
     }
 
     // 1. 创建 categories 表
