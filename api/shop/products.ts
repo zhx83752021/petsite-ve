@@ -28,7 +28,9 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       SELECT
         p.id,
         p.name,
-        p.category_id
+        p.category_id,
+        p.description,
+        p.images
       FROM products p
       ORDER BY p.id DESC
     `);
@@ -43,13 +45,22 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
         const sku = skuResult.rows[0] || {};
 
+        // 解析图片数组
+        let images = [];
+        try {
+          images = product.images ? (typeof product.images === 'string' ? JSON.parse(product.images) : product.images) : [];
+        } catch (e) {
+          images = [];
+        }
+        const imageUrl = images.length > 0 ? images[0].replace('w=800', 'w=400') : 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400';
+
         return {
           id: product.id,
           name: product.name,
-          description: '',
+          description: product.description || '',
           category_id: product.category_id,
-          image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400',
-          images: [],
+          image: imageUrl,
+          images: images,
           price: parseFloat(sku.min_price || 0),
           originalPrice: parseFloat(sku.max_price || 0),
           stock: parseInt(sku.total_stock || 0),

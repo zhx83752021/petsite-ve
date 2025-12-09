@@ -33,7 +33,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
     // 查询商品基本信息
     const productResult = await db.query(
-      'SELECT id, name, category_id FROM products WHERE id = $1',
+      'SELECT id, name, category_id, description, images FROM products WHERE id = $1',
       [id]
     );
 
@@ -73,21 +73,28 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     }
 
     // 返回商品详情
+    // 解析图片数组
+    let images = [];
+    try {
+      images = product.images ? (typeof product.images === 'string' ? JSON.parse(product.images) : product.images) : [];
+    } catch (e) {
+      images = [];
+    }
+    if (images.length === 0) {
+      images = ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800'];
+    }
+
     res.status(200).json({
       code: 200,
       message: 'success',
       data: {
         id: product.id,
         name: product.name,
-        description: '这是一款优质的宠物商品，专为您的爱宠精心挑选。',
+        description: product.description || '这是一款优质的宠物商品，专为您的爱宠精心挑选。',
         category_id: product.category_id,
         category_name: categoryName || '未分类',
-        image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800',
-        images: [
-          'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800',
-          'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800',
-          'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800'
-        ],
+        image: images[0],
+        images: images,
         price: minPrice,
         originalPrice: maxPrice,
         stock: totalStock,
