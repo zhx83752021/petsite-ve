@@ -66,7 +66,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       {
         id: admin.id,
         username: admin.username,
-        role: admin.role
+        role: 'admin'
       },
       jwtSecret,
       {
@@ -83,9 +83,10 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         admin: {
           id: admin.id,
           username: admin.username,
-          email: admin.email,
-          role: admin.role,
-          avatar: admin.avatar
+          realName: admin.real_name || admin.username,
+          email: admin.email || '',
+          phone: admin.phone || '',
+          status: admin.status || 1
         }
       }
     });
