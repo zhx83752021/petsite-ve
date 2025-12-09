@@ -132,10 +132,10 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       });
     }
 
-    res.status(200).json({
+    res.status(500).json({
       code: 500,
-      message: '加载商品失败: ' + error.message,
-      error: error.message
+      message: '加载商品失败',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
