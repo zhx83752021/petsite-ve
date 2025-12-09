@@ -3,13 +3,11 @@
   "buildCommand": "chmod +x frontend/node_modules/.bin/* && cd frontend && npx vite build && cd .. && cp -r public/* frontend/dist/",
   "outputDirectory": "frontend/dist",
   "installCommand": "npm install && cd frontend && npm install",
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    }
-  ],
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
     {
       "source": "/init-database.html",
       "destination": "/init-database.html"
