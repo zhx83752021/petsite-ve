@@ -99,9 +99,13 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       await db.query(`
         INSERT INTO admins (username, password, real_name, email, status) VALUES
         ('admin', '${hashedPassword}', '系统管理员', 'admin@petsite.com', 1)
-        ON CONFLICT (username) DO NOTHING
+        ON CONFLICT (username) DO UPDATE SET
+          password = EXCLUDED.password,
+          real_name = EXCLUDED.real_name,
+          email = EXCLUDED.email,
+          status = EXCLUDED.status
       `);
-      results.push('✅ 默认管理员创建成功（admin/admin123）');
+      results.push('✅ 默认管理员创建/更新成功（admin/admin123）');
     } catch (err: any) {
       results.push(`⚠️ 默认管理员: ${err.message}`);
     }
